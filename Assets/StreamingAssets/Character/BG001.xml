@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Level>
+<Name>BG001</Name>
+<Units>
+<unit name="" index="37" isPlayer="True"/>
+<unit name="" index="41" isPlayer="False"/>
+<unit name="" index="43" isPlayer="False"/>
+<unit name="" index="54" isPlayer="True"/>
+<unit name="" index="61" isPlayer="False"/>
+</Units>
+</Level>

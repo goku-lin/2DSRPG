@@ -1,0 +1,24 @@
+[
+  {
+    "did": 0,
+    "unit": "远坂凛",
+    "pos": 0,
+    "content": "早上好，樱",
+    "jump": 1,
+    "select": "",
+    "actName": "",
+    "actValue": "",
+    "actTarget": ""
+  },
+  {
+    "did": 1,
+    "unit": "远坂樱",
+    "pos": 1,
+    "content": "早上好，姐姐",
+    "jump": -1,
+    "select": "",
+    "actName": "",
+    "actValue": "",
+    "actTarget": ""
+  }
+]
