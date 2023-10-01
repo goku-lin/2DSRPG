@@ -4,11 +4,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class Utilitys
 {
+    public static readonly string SEPARATOR = string.Empty + Path.DirectorySeparatorChar;
+
     #region 保存和读取
     //填充Level类数据
     public static void FillLevel(string fileName, ref GLevel level)
@@ -186,6 +190,7 @@ public class Utilitys
 
     #endregion
 
+    #region 数据处理
     static Dictionary<string, Func<Role, int>> getters = new Dictionary<string, Func<Role, int>>()
         {
             { "MaxHp", role => role.maxHp },
@@ -262,5 +267,74 @@ public class Utilitys
             }
         }
         return translateStr;
+    }
+    #endregion
+
+    public static bool fileAccess
+    {
+        get
+        {
+            return Application.platform != RuntimePlatform.WebGLPlayer;
+        }
+    }
+
+    public static bool FileExistsInPersistentDataPath(string fileName)
+    {
+        return File.Exists(Application.persistentDataPath + Utilitys.SEPARATOR + fileName);
+    }
+
+    public static bool Save(string fileName, byte[] bytes)
+    {
+        if (!Utilitys.fileAccess)
+        {
+            return false;
+        }
+        string text = Application.persistentDataPath + "/" + fileName;
+        if (bytes == null)
+        {
+            if (File.Exists(text))
+            {
+                File.Delete(text);
+            }
+            return true;
+        }
+        string text2 = text + "_tmp";
+        if (File.Exists(text2))
+        {
+            File.Delete(text2);
+        }
+        try
+        {
+            FileStream fileStream = File.Create(text2);
+            fileStream.Write(bytes, 0, bytes.Length);
+            fileStream.Flush();
+            fileStream.Close();
+            if (File.Exists(text))
+            {
+                File.Delete(text);
+            }
+            File.Move(text2, text);
+        }
+        catch (Exception ex)
+        {
+            Debug.Log(ex.Message);
+            return false;
+        }
+        Debug.Log(text);
+        return true;
+    }
+
+    public static byte[] Load(string fileName)
+    {
+        if (!Utilitys.fileAccess)
+        {
+            return null;
+        }
+        string path = Application.persistentDataPath + "/" + fileName;
+        if (File.Exists(path))
+        {
+            return File.ReadAllBytes(path);
+        }
+        return null;
     }
 }

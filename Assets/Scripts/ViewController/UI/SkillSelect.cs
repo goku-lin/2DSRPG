@@ -11,17 +11,18 @@ public class SkillSelect : MonoBehaviour
     {
         isNew = true;
         Transform info = transform.Find("Info");
-        info.Find("Kind").GetComponent<Text>().text = "技能类型：" + skill.SkillType;
-        info.Find("Detail").GetComponent<Text>().text = skill.Help;
+        info.Find("Kind").GetComponent<Text>().text = "技能类型：" + skill.Info.SkillType;
+        info.Find("Detail").GetComponent<Text>().text = skill.Info.Help;
     }
 
     private void OnEnable()
     {
         isNew = true;
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            transform.Find("Button").GetChild(i).GetComponent<Button>().onClick.RemoveAllListeners();
-        }
+        //for (int i = 0; i < transform.childCount; i++)
+        //{
+        //    transform.Find("Button").GetChild(i).GetComponent<Button>().onClick.RemoveAllListeners();
+        //}
+        transform.Find("Button").GetChild(0).GetComponent<Button>().onClick.RemoveAllListeners();
     }
 
     private void Update()
@@ -29,7 +30,7 @@ public class SkillSelect : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             isNew = false;
-            Invoke("Begin", 0.2f);
+            Invoke(nameof(Begin), 0.2f);
         }
     }
 

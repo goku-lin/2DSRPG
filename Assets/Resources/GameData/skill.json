@@ -65,8 +65,7 @@
     "Fist": "0",
     "Special": "0",
     "EquipIids": "",
-    "Effect": "",
-    "activeSkillAction": ""
+    "Effect": ""
   },
   {
     "Sid": "SID_犀甲",
@@ -134,8 +133,7 @@
     "Fist": "0",
     "Special": "0",
     "EquipIids": "",
-    "Effect": "汎用スキル",
-    "activeSkillAction": ""
+    "Effect": "汎用スキル"
   },
   {
     "Sid": "SID_引雷之术",
@@ -203,8 +201,7 @@
     "Fist": "0",
     "Special": "0",
     "EquipIids": "",
-    "Effect": "汎用スキル",
-    "activeSkillAction": ""
+    "Effect": "汎用スキル"
   },
   {
     "Sid": "SID_气愈之术",
@@ -272,8 +269,7 @@
     "Fist": "0",
     "Special": "0",
     "EquipIids": "",
-    "Effect": "汎用スキル",
-    "activeSkillAction": ""
+    "Effect": "汎用スキル"
   },
   {
     "Sid": "SID_123",
@@ -341,8 +337,7 @@
     "Fist": "0",
     "Special": "0",
     "EquipIids": "",
-    "Effect": "汎用スキル",
-    "activeSkillAction": ""
+    "Effect": "汎用スキル"
   },
   {
     "Sid": "SID_456",
@@ -410,8 +405,7 @@
     "Fist": "0",
     "Special": "0",
     "EquipIids": "",
-    "Effect": "汎用スキル",
-    "activeSkillAction": ""
+    "Effect": "汎用スキル"
   },
   {
     "Sid": "SID_伤药",
@@ -479,7 +473,6 @@
     "Fist": "0",
     "Special": "0",
     "EquipIids": "",
-    "Effect": "汎用スキル",
-    "activeSkillAction": ""
+    "Effect": "汎用スキル"
   }
 ]

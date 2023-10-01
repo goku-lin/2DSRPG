@@ -9,7 +9,7 @@ public class DataManager
     private static DataManager _instance;
     public Dictionary<int, Person> personData;
     public Dictionary<string, Job> jobData;
-    public Dictionary<string, Skill> skillData;
+    public Dictionary<string, SkillInfo> skillData;
     public Dictionary<string, ItemInfo> itemData;
     public Dictionary<string, Dialog> dialogData;
     public Dictionary<int, Story> storyData;
@@ -61,10 +61,10 @@ public class DataManager
         {
             var jsonData = ResourcesExt.Load<TextAsset>("GameData/skill").text;
 
-            Skill[] tempData = JsonConvert.DeserializeObject<Skill[]>(jsonData);
+            SkillInfo[] tempData = JsonConvert.DeserializeObject<SkillInfo[]>(jsonData);
 
-            skillData = new Dictionary<string, Skill>();
-            foreach (Skill data in tempData)
+            skillData = new Dictionary<string, SkillInfo>();
+            foreach (SkillInfo data in tempData)
             {
                 skillData.Add(data.Sid, data);
             }

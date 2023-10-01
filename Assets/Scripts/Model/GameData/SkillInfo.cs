@@ -6,7 +6,7 @@
 
 // Generate From C:\Users\legend\Desktop\skill.xlsx.xlsx
 
-public class Skill
+public class SkillInfo
 {
     public string Sid; // スキル
     public string Name; // 名前
@@ -74,7 +74,6 @@ public class Skill
     public int Special; // 特
     public string EquipIids; // 強制装備
     public string Effect; // エフェクト名
-    public ActiveSkillAction activeSkillAction; // 主动技能行为
 }
 
 

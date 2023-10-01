@@ -24,10 +24,10 @@ public class InActiveSkillRange : Condition_Behavior
     {
         foreach (Skill skill in playerC.getRole().equipedSkills)
         {
-            if (skill != null && skill.activeSkillAction != null && skill.CD == 0)
+            if (skill != null && skill.activeSkillAction != null && skill.Info.CD == 0)
             {
                 Dictionary<int, AStarNode> dic = new Dictionary<int, AStarNode>();
-                AStar.AttackableArea(playerC, playerC.tileIndex, skill.RangeO, BattleManager.Instance.map, dic, skillRangePath);
+                AStar.AttackableArea(playerC, playerC.tileIndex, skill.Info.RangeO, BattleManager.Instance.map, dic, skillRangePath);
                 var enemys = BattleManager.Instance.GetEnemy(playerC.sect);
                 //查找技能射程范围内的玩家
                 foreach (var i in dic.Keys)

@@ -29,7 +29,7 @@ public class GameTitle : MonoBehaviour
     {
         Destroy(this.gameObject);
         PlayerData.Init();
-        Item nowItem = PlayerData.CreateItem("IID_经验药", 10);
+        Item nowItem = PlayerData.CreateItem("IID_经验药");
         PlayerData.Warehouse.Add(nowItem.uid, nowItem);
         SceneManagerExt.instance.LoadSceneShowProgress(GameDefine.SceneType.GameWorld);
     }
@@ -37,7 +37,7 @@ public class GameTitle : MonoBehaviour
     void OnContinueGameButtonClick()
     {
         Destroy(this.gameObject);
-
+        PlayerData.LoadRecord(0, "R0");
         SceneManagerExt.instance.LoadSceneShowProgress(GameDefine.SceneType.GameWorld);
     }
 

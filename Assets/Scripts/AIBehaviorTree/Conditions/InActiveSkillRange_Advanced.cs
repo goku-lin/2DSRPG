@@ -35,14 +35,14 @@ public class InActiveSkillRange_Advanced : Condition_Behavior
     {
         foreach (Skill skill in playerC.getRole().equipedSkills)
         {
-            if (skill != null && skill.SkillType != 0 && skill.CD == 0)
+            if (skill != null && skill.Info.SkillType != 0 && skill.Info.CD == 0)
             {
                 Dictionary<int, AStarNode> dic = new Dictionary<int, AStarNode>();
                 List<int> skillRangePath = new List<int>
                 {
                     playerC.tileIndex
                 };
-                AStar.AttackableArea(playerC, playerC.tileIndex, skill.RangeO, BattleManager.Instance.map, dic, skillRangePath);
+                AStar.AttackableArea(playerC, playerC.tileIndex, skill.Info.RangeO, BattleManager.Instance.map, dic, skillRangePath);
                 //查找技能射程范围内的玩家
                 foreach (var i in dic.Keys)
                 {
@@ -83,7 +83,7 @@ public class InActiveSkillRange_Advanced : Condition_Behavior
         //return base.Execute();
     }
 
-    protected virtual bool CanSelectSkill(Skill skill)
+    protected virtual bool CanSelectSkill(SkillInfo skill)
     {
         return false;
     }
@@ -91,7 +91,7 @@ public class InActiveSkillRange_Advanced : Condition_Behavior
 
 public class InDamageSkillRange : InActiveSkillRange_Advanced
 {
-    protected override bool CanSelectSkill(Skill skill)
+    protected override bool CanSelectSkill(SkillInfo skill)
     {
         return skill.RangeTarget == (int)SkillTarget.Enemy;
     }
@@ -104,7 +104,7 @@ public class InDamageSkillRange : InActiveSkillRange_Advanced
 
 public class InAuxiliarySkillRange : InActiveSkillRange_Advanced
 {
-    protected override bool CanSelectSkill(Skill skill)
+    protected override bool CanSelectSkill(SkillInfo skill)
     {
         return skill.RangeTarget == (int)SkillTarget.Friendly;
     }

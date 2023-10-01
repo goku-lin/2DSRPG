@@ -90,10 +90,10 @@ public class Character : MonoBehaviour
         int maxRange = max_AttackRange;
         foreach (Skill skill in getRole().equipedSkills)
         {
-            if (skill != null && skill.activeSkillAction != null && skill.CD == 0)
+            if (skill != null && skill.activeSkillAction != null && skill.Info.CD == 0)
             {
-                if (skill.RangeO > maxRange)
-                    maxRange = (int)skill.RangeO;
+                if (skill.Info.RangeO > maxRange)
+                    maxRange = (int)skill.Info.RangeO;
             }
         }
         return maxRange;
@@ -235,8 +235,8 @@ public class Character : MonoBehaviour
             if (item != null)
             {
                 //主动技能
-                item.CD += value;
-                if (item.CD <= 0) item.CD = 0;
+                item.Info.CD += value;
+                if (item.Info.CD <= 0) item.Info.CD = 0;
             }
         }
     }

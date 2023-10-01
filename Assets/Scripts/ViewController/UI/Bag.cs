@@ -113,8 +113,8 @@ public class Bag : MonoBehaviour
             Skill skill = toEquip.skills[i];
             character.UseItem(skill);
         }
-        toEquip.info.Endurance--;
-        if (toEquip.info.Endurance <= 0)
+        toEquip.count--;
+        if (toEquip.count <= 0)
         {
             character.getRole().items[selectID] = null;
         }

@@ -33,7 +33,7 @@ public class UseSkill_Advanced : ActionBehavior
             var p_skill = item.resultSkill;
             // var players = GameCtrl.instance.GetEnemy(from.sect);
             var players = new List<Character>();
-            if (p_skill.RangeTarget == (int)SkillTarget.Enemy)
+            if (p_skill.Info.RangeTarget == (int)SkillTarget.Enemy)
                 players = BattleManager.Instance.GetEnemy(from.sect);
             else
                 players = BattleManager.Instance.GetPlayers(from.sect);
@@ -43,13 +43,13 @@ public class UseSkill_Advanced : ActionBehavior
             {
                 List<int> path = new List<int>();
                 Dictionary<int, AStarNode> dic = new Dictionary<int, AStarNode>();
-                AStar.AttackableArea(p_target, p_target.tileIndex, p_skill.RangeO, BattleManager.Instance.map, dic, path);
+                AStar.AttackableArea(p_target, p_target.tileIndex, p_skill.Info.RangeO, BattleManager.Instance.map, dic, path);
 
                 var filterPlayer = players.FindAll(s => dic.ContainsKey(s.tileIndex));
 
                 //假如是治疗类型的技能的话,人物血量大于95%则不使用技能
                 //假如不做判断很会出现满血也会使用技能
-                if (p_skill.SkillType == (int)SkillType.RestoreHealth)
+                if (p_skill.Info.SkillType == (int)SkillType.RestoreHealth)
                 {
                     if (p_target.hp_percentage > 0.95f)
                     {
@@ -130,16 +130,16 @@ public class UseSkill_Advanced : ActionBehavior
         //辅助型 优先适用技能进行治疗
         if (behaviorType == BehaviorType.Auxiliary)
         {
-            if (x.skill.RangeTarget == (int)SkillTarget.Friendly)
+            if (x.skill.Info.RangeTarget == (int)SkillTarget.Friendly)
                 auxiliaryWeight += 100;
-            else if (x.skill.RangeTarget == (int)SkillTarget.Enemy)
+            else if (x.skill.Info.RangeTarget == (int)SkillTarget.Enemy)
                 attackWeight += 50;
 
         }
         else if (behaviorType == BehaviorType.Attck)
         {
             //进攻型
-            if (x.skill.RangeTarget == (int)SkillTarget.Enemy)
+            if (x.skill.Info.RangeTarget == (int)SkillTarget.Enemy)
                 attackWeight += 1000;
         }
 

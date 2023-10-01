@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -76,18 +77,20 @@ public class Role
         string[] sids = personInfo.CommonSids.Split(';');
         for (int i = 0; i < sids.Length - 1; i++)
         {
-            Skill skill = getSkillInfo(sids[i]);
+            Skill skill = new Skill();
+            skill.Info = getSkillInfo(sids[i]);
             commonSkill.Add(skill);
             equipedSkills.Add(skill);
-            learnedSkills.Add(skill.Sid, skill);
+            learnedSkills.Add(skill.Info.Sid, skill);
             InitSkillAction(skill);
         }
 
         sids = job.Skills.Split(';');
         for (int i = 0; i < sids.Length - 1; i++)
         {
-            Skill skill = getSkillInfo(sids[i]);
-            learnedSkills.Add(skill.Sid, skill);
+            Skill skill = new Skill();
+            skill.Info = getSkillInfo(sids[i]);
+            learnedSkills.Add(skill.Info.Sid, skill);
             InitSkillAction(skill);
             //TODO:技能怎么处理在这里解决（包括上下代码）
             if (equipedSkills.Count < PlayerData.skillNumber)
@@ -105,7 +108,8 @@ public class Role
             sids = items[j].info.EquipSids.Split(';');
             for (int i = 0; i < sids.Length - 1; i++)
             {
-                Skill skill = getSkillInfo(sids[i]);
+                Skill skill = new Skill();
+                skill.Info = getSkillInfo(sids[i]);
                 items[j].skills.Add(skill);
                 InitSkillAction(skill);
             }
@@ -186,11 +190,11 @@ public class Role
 
     public void InitSkillAction(Skill skill)
     {
-        if (skill.SkillType == 1)
+        if (skill.Info.SkillType == 1)
         {
             skill.activeSkillAction = new RestoreHealth();
         }
-        else if (skill.SkillType == 2)
+        else if (skill.Info.SkillType == 2)
         {
             skill.activeSkillAction = new DamageSkill();
         }
@@ -285,7 +289,7 @@ public class Role
         return DataManager.GetInstance().jobData[this.jid];
     }
 
-    public Skill getSkillInfo(string sid)
+    public SkillInfo getSkillInfo(string sid)
     {
         if (!DataManager.GetInstance().skillData.ContainsKey(sid))
         {
@@ -384,6 +388,93 @@ public class Role
         //}
         //PlayerData.TestAchievement(2, this.lv);
     }
+
+    public void writeRecord(BinaryWriter writer)
+    {
+        writer.Write(this.pid);
+        writer.Write(this.lv);
+        writer.Write(this.exp);
+        writer.Write(this.jid);
+
+        for (int i = 0; i < multiAttribute.Length; i++)
+        {
+            writer.Write(this[i]);
+        }
+
+        for (int j = 0; j < this.items.Length; j++)
+        {
+            bool flag = this.items[j] != null;
+            writer.Write(flag);
+            if (flag)
+            {
+                this.items[j].saveRecord(writer);
+            }
+        }
+        bool flag2 = this.equip != null;
+        writer.Write(flag2);
+        if (flag2)
+        {
+            this.equip.saveRecord(writer);
+        }
+        //技能保存得多写一个类，和item一样
+        writer.Write(this.learnedSkills.Count);
+        foreach (Skill skill in this.learnedSkills.Values)
+        {
+            skill.saveRecord(writer);
+        }
+        writer.Write(this.equipedSkills.Count);
+        for (int k = 0; k < this.equipedSkills.Count; k++)
+        {
+            Skill skill2 = this.equipedSkills[k];
+            skill2.saveRecord(writer);
+        }
+
+        //writer.Write(this.killCount);
+        //writer.Write(this.deadCount);
+    }
+
+    public static Role readRecord(BinaryReader reader)
+    {
+        int tempPid = reader.ReadInt32();
+        Role role = new Role(tempPid);
+        role.lv = reader.ReadInt32();
+        role.exp = reader.ReadSingle();
+        role.jid = reader.ReadString();
+        //TODO:这里数字7，因为不能用非静态的字段
+        for (int i = 0; i < 7; i++)
+        {
+            role[i] = reader.ReadInt32();
+        }
+
+        for (int j = 0; j < role.items.Length; j++)
+        {
+            bool flag = reader.ReadBoolean();
+            role.items[j] = ((!flag) ? null : Item.readRecord(reader));
+        }
+        bool flag2 = reader.ReadBoolean();
+        role.equip = ((!flag2) ? null : Item.readRecord(reader));
+
+        int num2 = reader.ReadInt32();
+        role.learnedSkills = new Dictionary<string, Skill>();
+        for (int k = 0; k < num2; k++)
+        {
+            Skill skill = Skill.readRecord(reader);
+            role.learnedSkills[skill.Info.Sid] = skill;
+        }
+        int num3 = reader.ReadInt32();
+        role.equipedSkills = new List<Skill>();
+        for (int l = 0; l < num3; l++)
+        {
+            Skill skill2 = Skill.readRecord(reader);
+            role.equipedSkills.Add(skill2);
+        }
+
+        //role.killCount = reader.ReadInt32();
+        //role.deadCount = reader.ReadInt32();
+        //role.dataLock = true;
+        return role;
+    }
+
 
     public int this[int index]
     {

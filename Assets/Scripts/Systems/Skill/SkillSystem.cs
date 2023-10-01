@@ -30,14 +30,14 @@ public class SkillSystem : Singleton<SkillSystem>
         var states1 = GetSkillState(from.getRole(), ExecuteTiming.FightingEnd);
         foreach (Skill state in states1)
         {
-            CastSkill(state, from.getRole(), to.getRole());
+            CastSkill(state.Info, from.getRole(), to.getRole());
         }
 
         //考虑对方也存在被动技能
         var states2 = GetSkillState(to.getRole(), ExecuteTiming.FightingEnd);
         foreach (Skill state in states2)
         {
-            CastSkill(state, to.getRole(), from.getRole()); ;
+            CastSkill(state.Info, to.getRole(), from.getRole()); ;
         }
     }
 
@@ -49,14 +49,14 @@ public class SkillSystem : Singleton<SkillSystem>
         var states1 = GetSkillState(from, ExecuteTiming.FightingStart);
         foreach (Skill state in states1)
         {
-            CastSkill(state, from, to);
+            CastSkill(state.Info, from, to);
         }
 
         //考虑对方也存在被动技能
         var states2 = GetSkillState(to, ExecuteTiming.FightingStart);
         foreach (Skill state in states2)
         {
-            CastSkill(state, to, from);;
+            CastSkill(state.Info, to, from);;
         }
 
         for (int i = 0; i < from.multiAttribute.Length; i++)
@@ -119,7 +119,7 @@ public class SkillSystem : Singleton<SkillSystem>
             // 添加其他属性的映射
         };
 
-    public void CastSkill(Skill skill, Role from, Role to)
+    public void CastSkill(SkillInfo skill, Role from, Role to)
     {
         System.Data.DataTable dt = new System.Data.DataTable();
         if ((bool)dt.Compute(Utilitys.TranslateString(skill.Condition, from, to), null))
@@ -186,7 +186,7 @@ public class SkillSystem : Singleton<SkillSystem>
         {
             if (skill != null)
             {
-                if ((ExecuteTiming)skill.Timing == executeTiming)
+                if ((ExecuteTiming)skill.Info.Timing == executeTiming)
                     n.Add(skill);
             }
         }
@@ -197,8 +197,8 @@ public class SkillSystem : Singleton<SkillSystem>
     {
         usingSkill.activeSkillAction.Releaseskill(from, filterPlayers, usingSkill);
 
-        usingSkill.CD = usingSkill.Cycle;
-        from.getRole().mp -= usingSkill.MPCost;
+        usingSkill.Info.CD = usingSkill.Info.Cycle;
+        from.getRole().mp -= usingSkill.Info.MPCost;
         Debug.Log(from.getRole().mp);
     }
 }

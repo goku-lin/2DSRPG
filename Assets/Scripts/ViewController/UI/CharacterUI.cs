@@ -1,9 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Mathematics;
-using UnityEditor;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 
 /// <summary>
@@ -12,7 +10,6 @@ using UnityEngine.UI;
 public class CharacterUI : MonoBehaviour
 {
     private GameObject characterFace;
-    Transform exchange;
     private GameObject skillUI;
     private GameObject itemButton;
     private Role nowRole;
@@ -21,13 +18,13 @@ public class CharacterUI : MonoBehaviour
     private Dictionary<string, int> allSkillDic = new Dictionary<string, int>();
     Transform itemSelect;
     Transform skillSelect;
+    private ItemKind[] canEquip = { ItemKind.Sword, ItemKind.Lance, ItemKind.Axe, ItemKind.Bow, ItemKind.Dagger, ItemKind.Magic, ItemKind.Fist, ItemKind.Special };
 
     private void Start()
     {
         characterFace = ResourcesExt.Load<GameObject>("Prefabs/CharacterFace");
         skillUI = ResourcesExt.Load<GameObject>("Prefabs/skillUI");
         itemButton = ResourcesExt.Load<GameObject>("Prefabs/ItemButton");
-        exchange = this.transform.Find("Exchange");
         itemSelect = this.transform.Find("ItemSelect");
         skillSelect = this.transform.Find("SkillSelect");
         InitCharacter();
@@ -72,18 +69,22 @@ public class CharacterUI : MonoBehaviour
         Item expItem = FindExpItem();
 
         UpdateBaseInfo(attribute);
-        Transform info = this.transform.Find("Info");
-        info.Find("Name").GetComponent<Text>().text = nowRole.unitName;
-        info.Find("Lv").GetComponent<Text>().text = "Lv：" + nowRole.lv;
+        Transform mainInfo = this.transform.Find("MainInfo");
+        mainInfo.Find("Name").GetComponent<Text>().text = nowRole.unitName;
+        mainInfo.Find("Lv").GetComponent<Text>().text = "Lv：" + nowRole.lv;
         //TODO:暂时先这样，以实现功能为主
-        info.Find("LvUp").GetComponent<Button>().onClick.AddListener(() => { UseExpItem(expItem); UpdateBaseInfo(attribute); });
+        mainInfo.Find("LvUp").GetComponent<Button>().onClick.AddListener(() =>
+        {
+            UseExpItem(expItem);
+            UpdateBaseInfo(attribute);
+            mainInfo.Find("Lv").GetComponent<Text>().text = "Lv：" + nowRole.lv;
+        });
 
 
 
         Transform skill = this.transform.Find("Skill");
         Transform currentSkill = skill.Find("CurrentSkill");
         //已装备技能显示
-        currentSkillDic = new Dictionary<string, int>();
         for (int i = 0; i < PlayerData.skillNumber; i++)
         {
             if (i >= currentSkill.childCount)
@@ -96,7 +97,7 @@ public class CharacterUI : MonoBehaviour
             }
             currentSkill.GetChild(i).gameObject.SetActive(true);
             GameObject s = currentSkill.GetChild(i).gameObject;
-            s.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + nowRole.equipedSkills[i].IconLabel);
+            s.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + nowRole.equipedSkills[i].Info.IconLabel);
         }
 
         skill.Find("SkillInfo").GetComponent<Button>().onClick.AddListener(SkillButton);
@@ -116,8 +117,6 @@ public class CharacterUI : MonoBehaviour
 
     private void UpdateBaseInfo(Transform info)
     {
-        //info.Find("Lv").GetComponent<Text>().text = "Lv：" + nowRole.lv;
-        //info.Find("Exp").GetComponent<Text>().text = "Exp：" + nowRole.exp;
         info.Find("HP").GetComponent<Text>().text = "血量：" + nowRole.maxHp;
         info.Find("Str").GetComponent<Text>().text = "力量：" + nowRole.str;
         info.Find("Magic").GetComponent<Text>().text = "魔力：" + nowRole.magic;
@@ -133,7 +132,6 @@ public class CharacterUI : MonoBehaviour
     {
         foreach (var i in PlayerData.Warehouse.Values)
         {
-
             if (i.info.Kind == (int)ItemKind.Exp)
                 return i;
         }
@@ -143,27 +141,18 @@ public class CharacterUI : MonoBehaviour
 
     private void UseExpItem(Item expItem)
     {
-        //Item expItem = PlayerData.Warehouse[selectID];
-        //TODO:获得经验改到这里
-        //for (int i = 0; i < toEquip.skills.Count; i++)
-        //{
-        //    Skill skill = toEquip.skills[i];
-        //    character.UseItem(skill);
-        //}
         if (expItem == null) return;
 
-        if (expItem.info.Endurance > 0)
+        if (expItem.count > 0)
+        {
             nowRole.gainExp(50);
-        expItem.info.Endurance--;
-        //if (expItem.info.Endurance <= 0)
-        //{
-        //    nowRole.items[selectID] = null;
-        //}
+            expItem.count--;
+        }
     }
 
     private void SkillButton()
     {
-        Transform skillInfo = this.transform.Find("Info2/Skill");
+        Transform skillInfo = this.transform.Find("Info/Skill");
         skillInfo.gameObject.SetActive(true);
         Transform currentSkill = skillInfo.Find("CurrentSkill");
         skillInfo.Find("Cancel").GetComponent<Button>().onClick.AddListener(() =>
@@ -183,15 +172,15 @@ public class CharacterUI : MonoBehaviour
                 continue;
             }
             currentSkill.GetChild(i).gameObject.SetActive(true);
-            GameObject s = currentSkill.GetChild(i).gameObject;
-            s.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + nowRole.equipedSkills[i].IconLabel);
+            GameObject skillGO = currentSkill.GetChild(i).gameObject;
+            skillGO.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + nowRole.equipedSkills[i].Info.IconLabel);
             //这里不使用临时变量，最后都用i的最大值了
             int value = i;
             //使用字典储存，保证能找到
-            currentSkillDic.Add(nowRole.equipedSkills[value].Sid, value);
+            currentSkillDic.Add(nowRole.equipedSkills[value].Info.Sid, value);
             //赋值前先去掉所有事件监听
-            s.GetComponent<Button>().onClick.RemoveAllListeners();
-            s.GetComponent<Button>().onClick.AddListener(() => InitSkillButton(nowRole.equipedSkills[value], s));
+            skillGO.GetComponent<Button>().onClick.RemoveAllListeners();
+            skillGO.GetComponent<Button>().onClick.AddListener(() => InitSkillButton(nowRole.equipedSkills[value], skillGO));
         }
         Transform skills = skillInfo.Find("Skills");
         int j = 0;
@@ -204,12 +193,13 @@ public class CharacterUI : MonoBehaviour
             if (j >= skills.childCount) Instantiate(skillUI, skills);
             skills.GetChild(j).gameObject.SetActive(true);
             GameObject s = skills.GetChild(j).gameObject;
-            s.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + skill.IconLabel);
+            s.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + skill.Info.IconLabel);
+            //TODO:透明度显示不太对，估计是new了skill判断不出来了
             if (nowRole.equipedSkills.Contains(skill))
                 s.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.5f);
 
             int value = j;
-            allSkillDic.Add(skill.Sid, value);
+            allSkillDic.Add(skill.Info.Sid, value);
             s.GetComponent<Button>().onClick.RemoveAllListeners();
             s.GetComponent<Button>().onClick.AddListener(() => InitSkillButton(skill, s));
             j++;
@@ -226,60 +216,87 @@ public class CharacterUI : MonoBehaviour
 
     private void InitSkillButton(Skill skill, GameObject b)
     {
+        //TODO:未来可以加个是否连续操作的判断，把下面的关闭判断一下即可
+        skillSelect.gameObject.SetActive(false);
         skillSelect.gameObject.SetActive(true);
         skillSelect.transform.position = b.transform.position;// + new Vector3(100, 0, 0);
 
         Transform button = skillSelect.Find("Button");
         button.Find("EquipBtn").GetComponent<Button>().onClick.AddListener(() => { ChangeSkill(skill); });
         skillSelect.GetComponent<SkillSelect>().Init(skill);
+
+        if (nowRole.equipedSkills.Contains(skill))
+        {
+            skillSelect.Find("Button").GetChild(0).GetComponentInChildren<Text>().text = "卸下";
+        }
+        else
+        {
+            skillSelect.Find("Button").GetChild(0).GetComponentInChildren<Text>().text = "装备";
+        }
     }
 
     private void ChangeSkill(Skill skill)
     {
-        Transform info2 = this.transform.Find("Skill/Info2");
-        Transform currentSkill = info2.Find("CurrentSkill");
-        Transform skills = info2.Find("Skills");
         if (nowRole.equipedSkills.Contains(skill))
         {
-            nowRole.equipedSkills.Remove(skill);
-            currentSkill.GetChild(currentSkillDic[skill.Sid]).gameObject.SetActive(false);
-            currentSkillDic.Remove(skill.Sid);
-            skills.GetChild(allSkillDic[skill.Sid]).GetComponent<Image>().color = Color.white;
+            RemoveSkill(skill);
         }
+        //装备的技能没满才加
         else if (nowRole.equipedSkills.Count < PlayerData.skillNumber)
         {
-            nowRole.equipedSkills.Add(skill);
-            int j = -1;
-            for (int i = 0; i < currentSkill.childCount; i++)
-            {
-                if (!currentSkill.GetChild(i).gameObject.activeSelf)
-                {
-                    j = i;
-                    break;
-                }
-            }
-            currentSkillDic.Add(skill.Sid, j);
-            currentSkill.GetChild(j).gameObject.SetActive(true);
-            GameObject s = currentSkill.GetChild(j).gameObject;
-            s.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + skill.IconLabel);
-            skills.GetChild(allSkillDic[skill.Sid]).GetComponent<Image>().color = new Color(1, 1, 1, 0.5f);
+            AddSkill(skill);
         }
+        UpdateCharacterInfo();
+        SkillButton();
+    }
+
+    private void RemoveSkill(Skill skill)
+    {
+        Transform skillInfo = this.transform.Find("Info/Skill");
+        Transform currentSkill = skillInfo.Find("CurrentSkill");
+        Transform skills = skillInfo.Find("Skills");
+        nowRole.equipedSkills.Remove(skill);
+        currentSkill.GetChild(currentSkillDic[skill.Info.Sid]).gameObject.SetActive(false);
+        currentSkillDic.Remove(skill.Info.Sid);
+        skills.GetChild(allSkillDic[skill.Info.Sid]).GetComponent<Image>().color = Color.white;
+    }
+
+    private void AddSkill(Skill skill)
+    {
+        Transform skillInfo = this.transform.Find("Info/Skill");
+        Transform currentSkill = skillInfo.Find("CurrentSkill");
+        Transform skills = skillInfo.Find("Skills");
+        nowRole.equipedSkills.Add(skill);
+        int j = -1;
+        for (int i = 0; i < currentSkill.childCount; i++)
+        {
+            if (!currentSkill.GetChild(i).gameObject.activeSelf)
+            {
+                j = i;
+                break;
+            }
+        }
+        currentSkillDic.Add(skill.Info.Sid, j);
+        currentSkill.GetChild(j).gameObject.SetActive(true);
+        GameObject s = currentSkill.GetChild(j).gameObject;
+        s.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + skill.Info.IconLabel);
+        skills.GetChild(allSkillDic[skill.Info.Sid]).GetComponent<Image>().color = new Color(1, 1, 1, 0.5f);
     }
 
     private void DetailButton()
     {
-        Transform info4 = exchange.transform.Find("Info4");
-        Person personInfo = nowRole.getBasicInfo();
-        info4.Find("Name").GetComponent<Text>().text = "姓名：" + personInfo.Name;
-        info4.Find("Detail").GetComponent<Text>().text = "详情：" + personInfo.Help;
-        info4.Find("Age").GetComponent<Text>().text = "年龄：" + personInfo.Age;
-        info4.Find("Birthday").GetComponent<Text>().text = "生日：" + personInfo.BirthMonth + "." + personInfo.BirthDay;
+        //Transform info4 = exchange.transform.Find("Info4");
+        //Person personInfo = nowRole.getBasicInfo();
+        //info4.Find("Name").GetComponent<Text>().text = "姓名：" + personInfo.Name;
+        //info4.Find("Detail").GetComponent<Text>().text = "详情：" + personInfo.Help;
+        //info4.Find("Age").GetComponent<Text>().text = "年龄：" + personInfo.Age;
+        //info4.Find("Birthday").GetComponent<Text>().text = "生日：" + personInfo.BirthMonth + "." + personInfo.BirthDay;
     }
 
     #region 装备物品UI
     private void ItemButton()
     {
-        Transform ItemInfo = this.transform.Find("Info2/Item");
+        Transform ItemInfo = this.transform.Find("Info/Item");
         ItemInfo.gameObject.SetActive(true);
         Transform bag = ItemInfo.Find("Bag");
         ItemInfo.Find("Cancel").GetComponent<Button>().onClick.AddListener(() =>
@@ -313,7 +330,7 @@ public class CharacterUI : MonoBehaviour
 
             int tempValue = i;
             s.GetComponent<Button>().onClick.RemoveAllListeners();
-            s.GetComponent<Button>().onClick.AddListener(() => InitItemButton(s, tempValue, true));
+            s.GetComponent<Button>().onClick.AddListener(() => InitItemButton(s, tempValue, true, nowRole.items[tempValue]));
         }
         Transform warehouse = ItemInfo.Find("Warehouse");
         int j = 0;
@@ -326,9 +343,9 @@ public class CharacterUI : MonoBehaviour
             GameObject s = warehouse.GetChild(j).gameObject;
             s.GetComponentInChildren<Text>().text = PlayerData.Warehouse[i.uid].info.Name;
 
-            int tempValue =j;
+            Item tempItem = i;
             s.GetComponent<Button>().onClick.RemoveAllListeners();
-            s.GetComponent<Button>().onClick.AddListener(() => InitItemButton(s, i.uid, false));
+            s.GetComponent<Button>().onClick.AddListener(() => InitItemButton(s, i.uid, false, tempItem));
             j++;
         }
         //空位隐藏掉
@@ -341,36 +358,56 @@ public class CharacterUI : MonoBehaviour
         }
     }
 
-    private void InitItemButton(GameObject b, long tempValue, bool isBag)
+    private void InitItemButton(GameObject b, long tempValue, bool isBag, Item item)
     {
         itemSelect.gameObject.SetActive(true);
         itemSelect.transform.position = b.transform.position;// + new Vector3(100, 0, 0);
         //TODO:这里判断是否装备还是使用
         Transform button = itemSelect.Find("Button");
+        Transform equipBtn = button.Find("EquipBtn");
+        Transform useBtn = button.Find("UseBtn");
+        Transform sendBtn = button.Find("SendBtn");
+        Transform receiveBtn = button.Find("ReceiveBtn");
+        //判断前先统一移除所有事件
+        equipBtn.GetComponent<Button>().onClick.RemoveAllListeners();
+        useBtn.GetComponent<Button>().onClick.RemoveAllListeners();
+        sendBtn.GetComponent<Button>().onClick.RemoveAllListeners();
+        receiveBtn.GetComponent<Button>().onClick.RemoveAllListeners();
+        //判断按钮应不应该显示
+        //是否在背包判断send和receive
         if (isBag)
         {
-            Item toEquip = nowRole.items[(int)tempValue];
-            button.Find("EquipBtn").GetComponent<Button>().onClick.AddListener(() => { ChangeEquip((int)tempValue); });
-            button.Find("UseBtn").GetComponent<Button>().onClick.AddListener(() => {  });
-
-            itemSelect.GetComponent<ItemSelect>().Init(nowRole.items[tempValue]);
-            button.Find("SendBtn").gameObject.SetActive(true);
-            button.Find("SendBtn").GetComponent<Button>().onClick.AddListener(() => { SendItem((int)tempValue); });
-            button.Find("ReceiveBtn").gameObject.SetActive(false);
+            sendBtn.gameObject.SetActive(true);
+            sendBtn.GetComponent<Button>().onClick.AddListener(() => { SendItem((int)tempValue); });
+            receiveBtn.gameObject.SetActive(false);
         }
         else
         {
             //TODO:这个和bag的这个看看能不能优化一下
-            itemSelect.GetComponent<ItemSelect>().Init(PlayerData.Warehouse[tempValue]);
-            button.Find("ReceiveBtn").gameObject.SetActive(true);
-            button.Find("ReceiveBtn").GetComponent<Button>().onClick.AddListener(() => { ReceiveItem(tempValue); });
-            button.Find("SendBtn").gameObject.SetActive(false);
+            receiveBtn.gameObject.SetActive(true);
+            receiveBtn.GetComponent<Button>().onClick.AddListener(() => { ReceiveItem(tempValue); });
+            sendBtn.gameObject.SetActive(false);
         }
+        //是否可装备判断equip和use
+        if (canEquip.Contains((ItemKind)item.info.Kind))
+        {
+            equipBtn.gameObject.SetActive(true);
+            equipBtn.GetComponent<Button>().onClick.AddListener(() => { ChangeEquip((int)tempValue); });
+            useBtn.gameObject.SetActive(false);
+        }
+        else
+        {
+            useBtn.gameObject.SetActive(true);
+            useBtn.GetComponent<Button>().onClick.AddListener(() => {  });
+            equipBtn.gameObject.SetActive(false);
+        }
+
+        itemSelect.GetComponent<ItemSelect>().Init(item);
     }
 
     private void ChangeEquip(int selectID)
     {
-        Transform item = this.transform.Find("Info2/Item");
+        Transform item = this.transform.Find("Info/Item");
         Transform bag = item.Find("Bag");
         Item toEquip = nowRole.items[selectID];
 
@@ -384,7 +421,6 @@ public class CharacterUI : MonoBehaviour
     private void SendItem(int selectID)
     {
         Item nowItem = nowRole.items[selectID];
-        Debug.Log(nowItem == null);
         //数据变化
         if (nowRole.equip != null && nowItem.uid == nowRole.equip.uid)
         {
@@ -416,4 +452,12 @@ public class CharacterUI : MonoBehaviour
         ItemButton();
     }
     #endregion
+
+    public void CloseAll()
+    {
+        Transform skillInfo = this.transform.Find("Info/Skill");
+        skillInfo.gameObject.SetActive(false);
+        Transform ItemInfo = this.transform.Find("Info/Item");
+        ItemInfo.gameObject.SetActive(false);
+    }
 }

@@ -48,18 +48,18 @@ public class InfoUI : MonoBehaviour
             string id;
             if (i >= learnedSkill.Count)
                 id = "";
-            else id = learnedSkill[i].Name;
+            else id = learnedSkill[i].Info.Name;
             var showIcon = id != "";
 
-            if (showIcon) skillPanel.GetChild(i).GetComponent<Image>().sprite = BattleManager.Instance.GetSkillTexture(learnedSkill[i].IconLabel);
+            if (showIcon) skillPanel.GetChild(i).GetComponent<Image>().sprite = BattleManager.Instance.GetSkillTexture(learnedSkill[i].Info.IconLabel);
             skillPanel.GetChild(i).gameObject.SetActive(showIcon);
 
             if (i >= learnedSkill.Count) continue;
             var skill = learnedSkill[i];
 
-            if (skill.SkillType != 0)
+            if (skill.Info.SkillType != 0)
             {
-                var cd = skill.CD;
+                var cd = skill.Info.CD;
                 skillPanel.GetChild(i).GetChild(0).gameObject.SetActive(cd > 0);
                 skillPanel.GetChild(i).GetChild(0).GetComponentInChildren<Text>().text = cd.ToString();
             }

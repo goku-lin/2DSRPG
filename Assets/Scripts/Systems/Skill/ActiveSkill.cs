@@ -35,7 +35,7 @@ public class RestoreHealth : ActiveSkillAction
 
     public override void Releaseskill(Character from, List<Character> to, Skill skill)
     {
-        string[] actvalues = skill.ActValues.Split(';');
+        string[] actvalues = skill.Info.ActValues.Split(';');
         foreach (var player in to)
         {
             int addHp = (int)dt.Compute(Utilitys.TranslateString(actvalues[0], from.getRole(), player.getRole()), null);
@@ -125,10 +125,10 @@ public class DamageSkill : ActiveSkillAction
 
     public override void Releaseskill(Character from, List<Character> to, Skill skill)
     {
-        BattleManager.Instance.StartCoroutine(C_ShowTime(from, to, skill));
+        BattleManager.Instance.StartCoroutine(C_ShowTime(from, to, skill.Info));
     }
 
-    IEnumerator C_ShowTime(Character from, List<Character> to, Skill skill)
+    IEnumerator C_ShowTime(Character from, List<Character> to, SkillInfo skill)
     {
         //镜头震动
         CameraCtrl.Instance.Shake(0.5f, 0.3f);

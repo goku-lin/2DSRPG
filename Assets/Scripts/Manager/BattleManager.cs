@@ -456,18 +456,18 @@ public class BattleManager : SingletonMono<BattleManager>
             string id;
             if (i >= learnedSkill.Count)
                 id = "";
-            else id = learnedSkill[i].Name;
+            else id = learnedSkill[i].Info.Name;
             var showIcon = id != "";
 
-            if (showIcon) UIManager.Instance.skill_slot[i].button.image.sprite = GetSkillTexture(learnedSkill[i].IconLabel);
+            if (showIcon) UIManager.Instance.skill_slot[i].button.image.sprite = GetSkillTexture(learnedSkill[i].Info.IconLabel);
             UIManager.Instance.skill_slot[i].button.gameObject.SetActive(showIcon);
 
             if (i >= learnedSkill.Count) continue;
             var skill = learnedSkill[i];
 
-            if (skill.SkillType != 0)
+            if (skill.Info.SkillType != 0)
             {
-                var cd = skill.CD;
+                var cd = skill.Info.CD;
                 UIManager.Instance.skill_slot[i].cdImage.gameObject.SetActive(cd > 0);
                 UIManager.Instance.skill_slot[i].cdText.text = cd.ToString();
             }
@@ -521,17 +521,17 @@ public class BattleManager : SingletonMono<BattleManager>
     public void UseSkill(int id)
     {
         if (isMoving || isBeforeBattle) return;
-        if (nowCharacter.getRole().equipedSkills[id].SkillType == 0)
+        if (nowCharacter.getRole().equipedSkills[id].Info.SkillType == 0)
         {
             Debug.Log("被动技能");
             return;
         }
-        if (nowCharacter.getRole().equipedSkills[id].CD > 0)
+        if (nowCharacter.getRole().equipedSkills[id].Info.CD > 0)
         {
             Debug.Log("技能还没冷却");
             return;
         }
-        if (nowCharacter.getRole().mp < nowCharacter.ShowActiveSkill_ReleaseRange(id).MPCost)
+        if (nowCharacter.getRole().mp < nowCharacter.ShowActiveSkill_ReleaseRange(id).Info.MPCost)
         {
             Debug.Log("MP不够");
             return;
@@ -545,7 +545,7 @@ public class BattleManager : SingletonMono<BattleManager>
     private void ShowActiveSkill_ReleaseRange2()
     {
         this.usingSkill = nowCharacter.ShowActiveSkill_ReleaseRange(lastSkillId);
-        ShowActiveSkill(nowCharacter, (uint)usingSkill.RangeO);
+        ShowActiveSkill(nowCharacter, (uint)usingSkill.Info.RangeO);
         this.showskillReleaseRange = true;
 
         UIManager.Instance.ShowSkillSelectTarget(true);
@@ -553,7 +553,7 @@ public class BattleManager : SingletonMono<BattleManager>
 
     private void ShowActiveSkill_ActionRange(Skill skill, Character target)
     {
-        ShowActiveSkill(target, (uint)skill.ActionRangeO);
+        ShowActiveSkill(target, (uint)skill.Info.ActionRangeO);
     }
 
     //等待人物选择释放范围内的目标
@@ -584,7 +584,7 @@ public class BattleManager : SingletonMono<BattleManager>
 
     public bool canSelect(Character from, Character to, Skill skill)
     {
-        if (skill.RangeTarget == 1)
+        if (skill.Info.RangeTarget == 1)
         {
             return from.sect == to.sect;
         }
