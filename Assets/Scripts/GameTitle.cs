@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Game.Client;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +13,10 @@ public class GameTitle : MonoBehaviour
         DataManager.GetInstance().InitSkillData();
         DataManager.GetInstance().InitItemData();
         DataManager.GetInstance().InitDialogData();
+
+        DialogManager.GetInstance().InitDialogData();
+
+        UIManager.GetInstance().Initialize();
 
         if (AudioCtrl.instance == null)
             AudioCtrl.Init();

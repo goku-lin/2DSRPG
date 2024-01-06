@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.PackageManager;
@@ -12,6 +12,8 @@ public class LevelEditor : MonoBehaviour
     public int mapX;
     public int mapY;
     public int tileCost = 1;
+    public string pid;
+
     public GameObject editorTile;
     private bool mCanChange;
     public GMap map;
@@ -49,17 +51,20 @@ public class LevelEditor : MonoBehaviour
             if (isUnit)
             {
                 GMapTile tempTile = hitInfo.collider.GetComponent<GMapTile>();
-                if (tempTile.character != null) return;
-                Character unit;
+                if (tempTile.unitMono != null) return;
+                UnitMono unit;
                 if (isPlayer)
                 {
-                    unit = Instantiate(player, unitParent).AddComponent<Character>();
+                    unit = Instantiate(player, unitParent).AddComponent<UnitMono>();
                 }
                 else
                 {
-                    unit = Instantiate(character, unitParent).GetComponent<Character>();
+                    unit = Instantiate(character, unitParent).GetComponent<UnitMono>();
+                    if (char.ToUpper(pid[0]) == 'O')
+                        unit.GetComponent<SpriteRenderer>().color = Color.gray;
+                    unit.pid = pid;
                 }
-                tempTile.character = unit;
+                tempTile.unitMono = unit;
                 unit.transform.position = tempTile.transform.position;
                 unit.tileIndex = tempTile.index;
             }
@@ -75,8 +80,8 @@ public class LevelEditor : MonoBehaviour
             if (isUnit)
             {
                 GMapTile tempTile = hitInfo.collider.GetComponent<GMapTile>();
-                if (tempTile.character == null) return;
-                Destroy(tempTile.character.gameObject);
+                if (tempTile.unitMono == null) return;
+                Destroy(tempTile.unitMono.gameObject);
             }
             else
             {
@@ -171,16 +176,15 @@ public class LevelEditor : MonoBehaviour
         List<UnitInfo> characters = Utilitys.LoadUnit(Application.streamingAssetsPath + "/Character/" + loadFile);
         for (int i = 0; i < characters.Count; i++)
         {
-            Character unit;
+            UnitMono unit;
             if (characters[i].isPlayer)
-                unit = Instantiate(player, unitParent).AddComponent<Character>();
+                unit = Instantiate(player, unitParent).AddComponent<UnitMono>();
             else
-                unit = Instantiate(character, unitParent).GetComponent<Character>();
-            unit.unitName = characters[i].unitName;
+                unit = Instantiate(character, unitParent).GetComponent<UnitMono>();
+            unit.pid = characters[i].pid;
             unit.tileIndex = characters[i].tileIndex;
-            unit.startIndex = unit.tileIndex;
             unit.transform.position = map.tiles[unit.tileIndex].transform.position;
-            map.tiles[unit.tileIndex].character = unit;
+            map.tiles[unit.tileIndex].unitMono = unit;
         }
     }
 

@@ -1,15 +1,18 @@
+using France.Game.model.level;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
-using UnityEditor;
-using UnityEditor.PackageManager;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class MapManager : SingletonMono<MapManager>
 {
+    private GLevel level;
     public GMap map;
     private GameObject mapTile;
-    private GameObject character;
+    private GameObject characterPrafab;
 
     protected override void Awake()
     {
@@ -20,10 +23,10 @@ public class MapManager : SingletonMono<MapManager>
     public void Init(string nowLevel)
     {
         mapTile = ResourcesExt.Load<GameObject>("Prefabs/MapTile");
-        character = ResourcesExt.Load<GameObject>("Prefabs/Enemy");
+        characterPrafab = Resources.Load<GameObject>("Prefabs/Character");
 
         string file = Application.streamingAssetsPath + "/Level/" + nowLevel + ".xml";
-        GLevel level = new GLevel();
+        level = new GLevel();
         Utilitys.FillLevel(file, ref level);
         Transform bgTrans = this.transform.Find("BackGround");
         bgTrans.position = level.pos;
@@ -52,31 +55,64 @@ public class MapManager : SingletonMono<MapManager>
     public void LoadUnit(string nowLevel)
     {
         List<UnitInfo> characters = Utilitys.LoadUnit(Application.streamingAssetsPath + "/Character/" + nowLevel + ".xml");
-        List<UnitInfo> players = new List<UnitInfo>();
+
+        int j = 0;
         for (int i = 0; i < characters.Count; i++)
         {
             if (characters[i].isPlayer)
             {
-                players.Add(characters[i]);
+                LoadPlayer(j++, characters[i], i);
                 continue;
             }
-            Character unit = Instantiate(character).GetComponent<Character>();
+            GActor gactor = GActor.CreateActor(i, 1);
+            level.actors[i] = gactor;
+            GameObject tempUnit = Instantiate(characterPrafab);
+            Character unit = tempUnit.GetComponent<Character>();
+
+            unit.model = (GFightUnit)gactor;
+            //TODO:敌方的名字想办法处理
+            unit.model.pid = characters[i].pid;
+
+            Role role = unit.getRole();
+
             unit.tileIndex = characters[i].tileIndex;
             unit.startIndex = unit.tileIndex;
             unit.transform.position = map.tiles[unit.tileIndex].transform.position;
             map.tiles[unit.tileIndex].character = unit;
-        }
 
-        int j = 0;
-        foreach (var item in PlayerData.Army.Values)
-        {
-            if (j >= players.Count) break;
-            GameObject tempUnit = ResourcesExt.Load<GameObject>("Prefabs/" + item.unitName);
-            Character unit = Instantiate(tempUnit).GetComponent<Character>();
-            unit.tileIndex = players[j++].tileIndex;
-            unit.startIndex = unit.tileIndex;
-            unit.transform.position = map.tiles[unit.tileIndex].transform.position;
-            map.tiles[unit.tileIndex].character = unit;
+            unit.sect = GameDefine.Sect.Red;
+            unit.model.teamId = 1;
+            tempUnit.name = "Character:" + role.unitName;
+            tempUnit.GetComponentInChildren<SpriteRenderer>().sprite = Resources.Load<Sprite>("Picture/" + role.unitName);
+            //TODO:这里没弄pid和init
+            unit.model.actorObject = tempUnit;
+            gactor.createObj();
         }
+    }
+
+    public void LoadPlayer(int playerNum, UnitInfo player, int uid)
+    {
+        Role role = PlayerData.Army.ElementAt(playerNum).Value;
+        GActor gactor = GActor.CreateActor(uid, 1);
+        level.actors[uid] = gactor;
+
+        GameObject tempUnit = Instantiate(characterPrafab);
+        Character unit = tempUnit.GetComponent<Character>();
+
+        unit.tileIndex = player.tileIndex;
+        unit.startIndex = unit.tileIndex;
+        unit.transform.position = map.tiles[unit.tileIndex].transform.position;
+        map.tiles[unit.tileIndex].character = unit;
+
+        unit.sect = GameDefine.Sect.Blue;
+        tempUnit.name = "Character:" + role.unitName;
+        tempUnit.GetComponentInChildren<SpriteRenderer>().sprite = Resources.Load<Sprite>("Picture/" + role.unitName);
+
+        unit.model = (GFightUnit)gactor;
+        unit.model.teamId = 0;
+        unit.model.pid = role.pid;
+        unit.model.actorObject = tempUnit;
+        gactor.createObj();
+        //unit.Init();
     }
 }

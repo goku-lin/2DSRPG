@@ -7,7 +7,7 @@ using UnityEngine;
 public class DataManager
 {
     private static DataManager _instance;
-    public Dictionary<int, Person> personData;
+    public Dictionary<string, Person> personData;
     public Dictionary<string, Job> jobData;
     public Dictionary<string, SkillInfo> skillData;
     public Dictionary<string, ItemInfo> itemData;
@@ -31,7 +31,7 @@ public class DataManager
 
             Person[] tempData = JsonConvert.DeserializeObject<Person[]>(jsonData);
 
-            personData = new Dictionary<int, Person>();
+            personData = new Dictionary<string, Person>();
             foreach (Person data in tempData)
             {
                 personData.Add(data.Pid, data);

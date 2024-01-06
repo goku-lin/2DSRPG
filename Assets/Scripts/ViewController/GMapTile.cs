@@ -16,6 +16,11 @@ public class tile
 
 public class GMapTile : MonoBehaviour
 {
+    /// <summary>
+    /// 在地图编辑使用，判断是否放入角色了
+    /// </summary>
+    public UnitMono unitMono;
+
     public int index;
     public int moveCost = 1;
     private int height;

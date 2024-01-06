@@ -1,0 +1,47 @@
+[
+  {
+    "id": 0,
+    "bgFilename": "bg",
+    "bgmSoundId": 1,
+    "keepOpen": 0,
+    "isCanSkip": 1,
+    "dialogsData": [
+      {
+        "name": "远坂凛",
+        "head": "远坂凛",
+        "pos": 0,
+        "enterType": 1,
+        "exitType": 1,
+        "text": "早上好，樱",
+        "col_6": ""
+      },
+      {
+        "name": "远坂樱",
+        "head": "远坂樱",
+        "pos": 1,
+        "enterType": -1,
+        "exitType": -1,
+        "text": "早上好，姐姐",
+        "col_6": ""
+      },
+      {
+        "name": "远坂凛",
+        "head": "远坂凛",
+        "pos": 0,
+        "enterType": 1,
+        "exitType": 1,
+        "text": "樱",
+        "col_6": ""
+      },
+      {
+        "name": "远坂樱",
+        "head": "远坂樱",
+        "pos": 1,
+        "enterType": -1,
+        "exitType": -1,
+        "text": "姐姐",
+        "col_6": ""
+      }
+    ]
+  }
+]

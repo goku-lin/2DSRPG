@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -43,13 +43,13 @@ public class DialogUI : MonoBehaviour
         //TODO:对话这样弄感觉会不会很浪费,暂时先这样吧
         if (!canTalk)
         {
-            if (UIManager.Instance != null)
-                UIManager.Instance.gameObject.SetActive(true);
+            if (BattleUIManager.Instance != null)
+                BattleUIManager.Instance.gameObject.SetActive(true);
         }
         else
         {
-            if (UIManager.Instance != null)
-                UIManager.Instance.gameObject.SetActive(false);
+            if (BattleUIManager.Instance != null)
+                BattleUIManager.Instance.gameObject.SetActive(false);
         }
     }
 }

@@ -32,7 +32,7 @@ public class MoveToTarget_Advanced : ActionBehavior
         //移动范围
         //List<int> enemyLists = new List<int>();
         Dictionary<int, AStarNode> dic = new Dictionary<int, AStarNode>();
-        AStar.MoveableArea(playerC, playerC.tileIndex, playerC.movePower, BattleManager.Instance.map, dic, BattleManager.Instance.GetEnemyList(playerC.sect));
+        AStar.MoveableArea(playerC, playerC.tileIndex, playerC.getRole().movePower, BattleManager.Instance.map, dic, BattleManager.Instance.GetEnemyList(playerC.sect));
         moveRangePath.Add(playerC.tileIndex);
         foreach (var i in dic.Keys)
         {
@@ -51,7 +51,7 @@ public class MoveToTarget_Advanced : ActionBehavior
         {
             //TODO:这里不应该这样用，应该要用什么技能就用什么技能的射程会好一点，不过先这样吧
             List<int> movePath = AStar.FindPath(playerC, playerC.tileIndex, playerC.tileIndex, p_player.tileIndex,
-                        true, playerC.movePower, playerC.movePower, BattleManager.Instance.map, 0, maxRange,
+                        true, playerC.getRole().movePower, playerC.getRole().movePower, BattleManager.Instance.map, 0, maxRange,
                         true, true, null, null, null, moveRangePath, BattleManager.Instance.GetEnemyList(playerC.sect));
             float fullDistance = AStar.ManhattanPower(playerC.tileIndex, p_player.tileIndex, BattleManager.Instance.map);
             var m = new MoveResult() { currentMovePath = movePath, moveToPlayer = p_player, fullDistance = fullDistance };

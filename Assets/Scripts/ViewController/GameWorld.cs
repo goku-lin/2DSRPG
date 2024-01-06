@@ -3,6 +3,7 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.EventSystems.EventTrigger;
 
 /// <summary>
 /// 世界的基础逻辑
@@ -45,6 +46,18 @@ public class GameWorld : MonoBehaviour
     private void ReturnButton()
     {
         SceneManagerExt.instance.LoadSceneShowProgress(GameDefine.SceneType.GameTilte);
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(1))
+        {
+            //this.currentTriggerEventType = eventType;
+            //int dialogGroupId = (int)triggerEvent.getParamAt(1);
+            MenuHelper.CloseMessageMenu();
+            MenuHelper.PopDialog(0);
+            //this.curDialogId = dialogGroupId;
+        }
     }
 
     private void Save()

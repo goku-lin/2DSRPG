@@ -8,17 +8,11 @@ using static GameDefine;
 
 public class Character : MonoBehaviour
 {
-    public int uid; //代表重复角色的编号
-    public int pid;
-
     [Header("人物属性")]
-    public string unitName;
-    public int movePower;
     public int min_AttackRange = 1;
     public int max_AttackRange = 1;
 
     public AIType tempjob;
-    public string weaponName;
 
     [Header("队伍属性")]
     public Sect sect;
@@ -28,9 +22,8 @@ public class Character : MonoBehaviour
 
     public Character target;
     public BehaviorAI behaviorAI;
-    internal Image hpImage;
-    internal Transform hpImageTrs;
 
+    public GFightUnit model;
     public Role beforeRole;
     public Role role;
 
@@ -40,11 +33,6 @@ public class Character : MonoBehaviour
         {
             return (float)this.getRole().hp / this.getRole().maxHp;
         }
-    }
-
-    private void Start()
-    {
-        EventDispatcher.instance.DispatchEvent<Character>(GameEventType.playerInitSkill, this);
     }
 
     public void Init()
@@ -63,18 +51,14 @@ public class Character : MonoBehaviour
             transform.position = BattleManager.Instance.mapTiles[tileIndex].transform.position;
             BattleManager.Instance.mapTiles[tileIndex].character = this;
         }
-        //Role role = getRole();
         this.role = getRole();
-        this.unitName = role.unitName;
         InitBecauseEquip();
     }
 
     public void InitBecauseEquip()
     {
-        this.movePower = role.movePower;
         if (role.equip != null)
         {
-            this.weaponName = role.equip.info.Name;
             min_AttackRange = role.equip.info.RangeI;
             max_AttackRange = role.equip.info.RangeO;
         }
@@ -90,7 +74,7 @@ public class Character : MonoBehaviour
         int maxRange = max_AttackRange;
         foreach (Skill skill in getRole().equipedSkills)
         {
-            if (skill != null && skill.activeSkillAction != null && skill.Info.CD == 0)
+            if (skill != null && skill.activeSkillAction != null && skill.cd == 0)
             {
                 if (skill.Info.RangeO > maxRange)
                     maxRange = (int)skill.Info.RangeO;
@@ -149,7 +133,7 @@ public class Character : MonoBehaviour
             () =>
             {
                 //TODO:暴击在这加
-                defender.BeAttack(calcAtt() - defender.calcDef(this.getRole()));
+                defender.BeAttack(model.calcAtt() - defender.model.calcDef(this.getRole()));
                 transform.DOMove(originPos, 0.25f);
             }
             );
@@ -161,7 +145,7 @@ public class Character : MonoBehaviour
         this.getRole().hp -= damage;
         EventDispatcher.instance.DispatchEvent<int, Vector3>(GameEventType.showHudDamage, damage, this.transform.position + Vector3.up * 0.5f);
         EventDispatcher.instance.DispatchEvent(GameEventType.playHitBodySound);
-        UIManager.Instance.UpdateHp(this);
+        model.updateHP();
         if (this.getRole().hp <= 0)
         {
             BattleManager.Instance.CharacterDie(this);
@@ -171,9 +155,8 @@ public class Character : MonoBehaviour
     public void DamgeBySkill(int dps)
     {
         EventDispatcher.instance.DispatchEvent<int, Vector3>(GameEventType.showHudDamage, -dps, this.transform.position + Vector3.up * 0.5f);
-        // 封装防止数值溢出
-        this.getRole().hp += -dps;
-        UIManager.Instance.UpdateHp(this);
+        model.DamgeBySkill(dps);
+        model.updateHP();
 
         if (this.getRole().hp <= 0)
         {
@@ -183,11 +166,10 @@ public class Character : MonoBehaviour
 
     public void RestoreHealth(int addHp)
     {
-        this.getRole().hp += addHp;
-        if (this.getRole().hp >= this.getRole().maxHp) this.getRole().hp = this.getRole().maxHp;
-        UIManager.Instance.UpdateHp(this);
+        model.RestoreHealth(addHp);
+        model.updateHP();
 
-        UIManager.Instance.ShowRestoreHealth(addHp, this);
+        BattleUIManager.Instance.ShowRestoreHealth(addHp, this);
     }
 
     public Skill ShowActiveSkill_ReleaseRange(int skillId)
@@ -200,7 +182,6 @@ public class Character : MonoBehaviour
     public void Releaseskill(Skill usingSkill, Character skillTarget)
     {
         this.state = PlayerSate.skill;
-        //if (skillTarget != this) this.lookatTarget(skillTarget);
 
         var players = BattleManager.Instance.characters;
 
@@ -222,23 +203,8 @@ public class Character : MonoBehaviour
             SkillSystem.Instance.Releaseskill(usingSkill, this, filterPlayers);
         };
         method.Invoke();
-        //StartCoroutine(c_PlayAnimation("skill03", 0.6f, method));
         System.Action methodEnd = () => { BattleManager.Instance.ActionEnd(); };
         methodEnd.Invoke();
-        //StartCoroutine(c_PlayAnimationEnd("skill03", methodEnd));
-    }
-
-    internal void Cd_Add(int value)
-    {
-        foreach (var item in this.getRole().equipedSkills)
-        {
-            if (item != null)
-            {
-                //主动技能
-                item.Info.CD += value;
-                if (item.Info.CD <= 0) item.Info.CD = 0;
-            }
-        }
     }
 
     public void UseItem(Skill usingSkill)
@@ -265,31 +231,7 @@ public class Character : MonoBehaviour
 
     public Role getRole()
     {
-        return PlayerData.GetRole(this.getCharacterId(), this.getId());
-    }
-
-    public int getCharacterId()
-    {
-        return this.pid;
-    }
-
-    public int getId()
-    {
-        return this.uid;
-    }
-
-    public int calcAtt()
-    {
-        Role attackRole = this.getRole();
-        int attackerAtk = attackRole.calcAtt();
-        return attackerAtk;
-    }
-
-    public int calcDef(Role attacker)
-    {
-        Role role = this.getRole();
-        int defend = role.calcDef(attacker);
-        return defend;
+        return model.getRole();
     }
 
 }
@@ -299,15 +241,14 @@ public class Character : MonoBehaviour
 /// </summary>
 public class UnitInfo
 {
-    public string unitName;
+    public string pid;
     public int tileIndex;
     public bool isPlayer;
 
-    public UnitInfo(string unitName, int tileIndex, bool isPlayer)
+    public UnitInfo(string pid, int tileIndex, bool isPlayer)
     {
-        this.unitName = unitName;
+        this.pid = pid;
         this.tileIndex = tileIndex;
         this.isPlayer = isPlayer;
     }
-
 }

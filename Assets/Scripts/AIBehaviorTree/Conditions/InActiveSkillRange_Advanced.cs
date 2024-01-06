@@ -35,7 +35,7 @@ public class InActiveSkillRange_Advanced : Condition_Behavior
     {
         foreach (Skill skill in playerC.getRole().equipedSkills)
         {
-            if (skill != null && skill.Info.SkillType != 0 && skill.Info.CD == 0)
+            if (skill != null && skill.Info.SkillType != 0 && skill.cd == 0)
             {
                 Dictionary<int, AStarNode> dic = new Dictionary<int, AStarNode>();
                 List<int> skillRangePath = new List<int>

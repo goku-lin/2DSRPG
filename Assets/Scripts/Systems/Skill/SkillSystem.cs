@@ -197,7 +197,7 @@ public class SkillSystem : Singleton<SkillSystem>
     {
         usingSkill.activeSkillAction.Releaseskill(from, filterPlayers, usingSkill);
 
-        usingSkill.Info.CD = usingSkill.Info.Cycle;
+        usingSkill.cd = usingSkill.Info.Cycle;
         from.getRole().mp -= usingSkill.Info.MPCost;
         Debug.Log(from.getRole().mp);
     }

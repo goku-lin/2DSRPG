@@ -38,6 +38,7 @@ public class Bag : MonoBehaviour
         character = BattleManager.Instance.nowCharacter;
         if (character == null) return;
         if (itemButtons == null) itemButtons = transform.Find("ItemButtons");
+
         InitBag();
     }
 
@@ -121,12 +122,17 @@ public class Bag : MonoBehaviour
         InitBag();
     }
 
-    private void OnDisable()
+    public void CloseBag()
     {
         for (int i = 0; i < this.itemButtons.transform.childCount; i++)
         {
             Destroy(itemButtons.transform.GetChild(i).gameObject);
         }
+    }
+
+    private void OnDisable()
+    {
+        CloseBag();
     }
 
 }

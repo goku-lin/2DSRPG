@@ -1,4 +1,4 @@
-using AIBehaviorTree;
+﻿using AIBehaviorTree;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,7 +24,7 @@ public class InActiveSkillRange : Condition_Behavior
     {
         foreach (Skill skill in playerC.getRole().equipedSkills)
         {
-            if (skill != null && skill.activeSkillAction != null && skill.Info.CD == 0)
+            if (skill != null && skill.activeSkillAction != null && skill.cd == 0)
             {
                 Dictionary<int, AStarNode> dic = new Dictionary<int, AStarNode>();
                 AStar.AttackableArea(playerC, playerC.tileIndex, skill.Info.RangeO, BattleManager.Instance.map, dic, skillRangePath);

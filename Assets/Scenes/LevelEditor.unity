@@ -256,6 +256,7 @@ MonoBehaviour:
   mapX: 17
   mapY: 9
   tileCost: 1
+  pid: "PID_\u4E0D\u660E"
   editorTile: {fileID: 6293983708078993896, guid: bc6c9b960119a164dabfdf255827cedc, type: 3}
   loadFile: BG001.xml
   character: {fileID: 2552165284682194711, guid: 569355aed98b25e47a469017014d7ec5, type: 3}

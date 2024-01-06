@@ -32,7 +32,7 @@ public class BehaviorAI : MonoBehaviour
     public void ExcuteBehavior_Advanced()
     {
         //this.playerC.AISelect();
-        UIManager.Instance.actionPanel.SetActive(false);
+        BattleUIManager.Instance.actionPanel.SetActive(false);
         StartCoroutine(c_ExcuteBehavior(this.root_Advanced_Attack));
     }
 
@@ -40,7 +40,7 @@ public class BehaviorAI : MonoBehaviour
     public void ExcuteBehavior_Auxiliary()
     {
         //this.playerC.AISelect();
-        UIManager.Instance.actionPanel.SetActive(false);
+        BattleUIManager.Instance.actionPanel.SetActive(false);
         StartCoroutine(c_ExcuteBehavior(this.root_Advanced_Auxiliary));
     }
 
@@ -164,7 +164,7 @@ public class BehaviorAI : MonoBehaviour
     //[ContextMenu("ExcuteBehavior")]
     void ExcuteBehavior()
     {
-        UIManager.Instance.actionPanel.SetActive(false);
+        BattleUIManager.Instance.actionPanel.SetActive(false);
         StartCoroutine(c_ExcuteBehavior(this.root));
     }
 
@@ -239,7 +239,7 @@ public class BehaviorAI : MonoBehaviour
     //[ContextMenu("ExcuteAI01")]
     void ExcuteAI01()
     {
-        UIManager.Instance.actionPanel.SetActive(false);
+        BattleUIManager.Instance.actionPanel.SetActive(false);
         StartCoroutine(c_Execute());
     }
 

@@ -30,6 +30,7 @@ public class BattleManager : SingletonMono<BattleManager>
     private GameObject moveTilePrefab;
     private GameObject attackTilePrefab;
     public bool auto = false;
+    private bool showOrder = false;
 
     //根据技能ID获取图片
     Dictionary<string, Sprite> skillTextureMap = new Dictionary<string, Sprite>();
@@ -61,12 +62,10 @@ public class BattleManager : SingletonMono<BattleManager>
         tempCharacter = FindObjectsOfType<Character>();
         for (int i = 0; i < tempCharacter.Length; i++) //初始化所有角色
         {
-            tempCharacter[i].uid = i;
+            //TODO:可以的话，去掉这里的init
             tempCharacter[i].Init();
             characters.Add(tempCharacter[i]);
         }
-
-        UIManager.Instance.Init_HpImage();
 
         //Invoke(nameof(NextOrder), 0.1f);
         EventDispatcher.instance.Regist(GameEventType.GotoHomeClICK, this.OnGotoHomeClICK);
@@ -78,6 +77,8 @@ public class BattleManager : SingletonMono<BattleManager>
         {
             MoveTo();
         }
+        if (BattleUIManager.Instance.actionOrder.isActiveAndEnabled && !InteractWithUI())
+            return;
         //对话时不能动界面
         if (StoryManager.Instance.canTalk) return;
         //释放技能时不能操作
@@ -194,28 +195,30 @@ public class BattleManager : SingletonMono<BattleManager>
             }
             else
             {
-                bool temp = !UIManager.Instance.actionPanel.activeSelf;
-                UIManager.Instance.actionPanel.SetActive(temp);
-                UIManager.Instance.infoUI.SetActive(!temp);
+                bool temp = !BattleUIManager.Instance.actionPanel.activeSelf;
+                BattleUIManager.Instance.actionPanel.SetActive(temp);
+                BattleUIManager.Instance.infoUI.SetActive(!temp);
             }
         }
         //点击可移动范围内时，进行移动
+        //增加：显示行动指令actionOrder,先记录，等移动到了再显示
         else if (isShow && moveRangePath.Contains(tempMapTile.index) && (tempMapTile.character == null || tempMapTile.character == nowCharacter) && nowCharacter.state == PlayerSate.idle)
         {
-            UIManager.Instance.actionPanel.SetActive(true);
-            UIManager.Instance.infoUI.SetActive(false);
+            BattleUIManager.Instance.actionPanel.SetActive(true);
+            BattleUIManager.Instance.infoUI.SetActive(false);
             if (nowCharacter.sect != mySect) return;
             isMoving = true;
             int tempIndex = tempMapTile.index;
             currentMovePath = AStar.FindPath(nowCharacter, nowCharacter.tileIndex, nowCharacter.tileIndex, tempIndex,
-                        true, nowCharacter.movePower, nowCharacter.movePower, map, 0, 0,
+                        true, nowCharacter.getRole().movePower, nowCharacter.getRole().movePower, map, 0, 0,
                         true, true, null, null, null, moveRangePath, GetEnemyList(mySect));
+            showOrder = true;
         }
         //选择敌人
         else if (tempMapTile.character != null && GetEnemyList(mySect).Contains(tempMapTile.character.tileIndex))
         {
-            UIManager.Instance.actionPanel.SetActive(true);
-            UIManager.Instance.infoUI.SetActive(false);
+            BattleUIManager.Instance.actionPanel.SetActive(true);
+            BattleUIManager.Instance.infoUI.SetActive(false);
             //移动范围和攻击范围内的敌人点击后移动到目标位置并打开攻击界面
             if (isShow && (moveRangePath.Contains(tempMapTile.index) || attackRangePath.Contains(tempMapTile.index)) && nowCharacter.sect == mySect && nowCharacter.state == PlayerSate.idle)
             {
@@ -224,7 +227,7 @@ public class BattleManager : SingletonMono<BattleManager>
                 nowCharacter.target = tempMapTile.character;
                 int tempIndex = tempMapTile.index;
                 currentMovePath = AStar.FindPath(nowCharacter, nowCharacter.tileIndex, nowCharacter.tileIndex, tempIndex,
-                            true, nowCharacter.movePower, nowCharacter.movePower, map, nowCharacter.min_AttackRange, nowCharacter.max_AttackRange,
+                            true, nowCharacter.getRole().movePower, nowCharacter.getRole().movePower, map, nowCharacter.min_AttackRange, nowCharacter.max_AttackRange,
                             true, true, null, null, null, moveRangePath, GetEnemyList(mySect));
             }
             //非攻击时显示敌人移动范围
@@ -249,7 +252,7 @@ public class BattleManager : SingletonMono<BattleManager>
         //nowCharacter = unit;
         dic = new Dictionary<int, AStarNode>();
         attackDic = new Dictionary<int, AStarNode>();
-        AStar.MoveableArea(unit, unit.startIndex, unit.movePower, map, dic, GetEnemyList(unit.sect));
+        AStar.MoveableArea(unit, unit.startIndex, unit.getRole().movePower, map, dic, GetEnemyList(unit.sect));
         foreach (var i in dic.Keys)
         {
             moveRangePath.Add(i);
@@ -281,7 +284,8 @@ public class BattleManager : SingletonMono<BattleManager>
         //移动到前不能取消
         if (isMoving) return;
         isShow = false;
-        UIManager.Instance.actionPanel.SetActive(false);
+        BattleUIManager.Instance.actionPanel.SetActive(false);
+        BattleUIManager.Instance.actionOrder.gameObject.SetActive(false);
         nowCharacter = null;
         //isMoving = false;
         ClearTile();
@@ -366,8 +370,10 @@ public class BattleManager : SingletonMono<BattleManager>
             isMoving = false;
             if (isAttack)
             {
-                UIManager.Instance.OpenAttackUI(true);
+                BattleUIManager.Instance.OpenAttackUI(true);
             }
+            if (showOrder)
+                BattleUIManager.Instance.OpenActionOrder(nowCharacter);
         }
     }
 
@@ -382,10 +388,12 @@ public class BattleManager : SingletonMono<BattleManager>
         nowCharacter.startIndex = nowCharacter.tileIndex;
         nowCharacter.state = PlayerSate.wait;
         //技能CD减少1
-        nowCharacter.Cd_Add(-1);
+        nowCharacter.model.Cd_Add(-1);
 
         UnShowMoveRange();
         currentMovePath.Clear();
+
+        showOrder = false;
 
         Character idlePlayer = null;
         if (orderSect == mySect)
@@ -440,7 +448,7 @@ public class BattleManager : SingletonMono<BattleManager>
 
     public void Attack(Character attacker)
     {
-        UIManager.Instance.OpenAttackUI(false);
+        BattleUIManager.Instance.OpenAttackUI(false);
         StartCoroutine(attacker.Attack());
         //BattleManager.Instance.Wait();
         isAttack = false;
@@ -448,7 +456,7 @@ public class BattleManager : SingletonMono<BattleManager>
 
     private void UpdateActionPanel(Character player)
     {
-        UIManager.Instance.actionPanel.SetActive(true);
+        BattleUIManager.Instance.actionPanel.SetActive(true);
         List<Skill> learnedSkill = player.getRole().equipedSkills;
 
         for (int i = 0; i < 3; i++)
@@ -459,20 +467,20 @@ public class BattleManager : SingletonMono<BattleManager>
             else id = learnedSkill[i].Info.Name;
             var showIcon = id != "";
 
-            if (showIcon) UIManager.Instance.skill_slot[i].button.image.sprite = GetSkillTexture(learnedSkill[i].Info.IconLabel);
-            UIManager.Instance.skill_slot[i].button.gameObject.SetActive(showIcon);
+            if (showIcon) BattleUIManager.Instance.skill_slot[i].button.image.sprite = GetSkillTexture(learnedSkill[i].Info.IconLabel);
+            BattleUIManager.Instance.skill_slot[i].button.gameObject.SetActive(showIcon);
 
             if (i >= learnedSkill.Count) continue;
             var skill = learnedSkill[i];
 
             if (skill.Info.SkillType != 0)
             {
-                var cd = skill.Info.CD;
-                UIManager.Instance.skill_slot[i].cdImage.gameObject.SetActive(cd > 0);
-                UIManager.Instance.skill_slot[i].cdText.text = cd.ToString();
+                var cd = skill.cd;
+                BattleUIManager.Instance.skill_slot[i].cdImage.gameObject.SetActive(cd > 0);
+                BattleUIManager.Instance.skill_slot[i].cdText.text = cd.ToString();
             }
             else
-                UIManager.Instance.skill_slot[i].cdImage.gameObject.SetActive(false);
+                BattleUIManager.Instance.skill_slot[i].cdImage.gameObject.SetActive(false);
         }
     }
 
@@ -500,12 +508,12 @@ public class BattleManager : SingletonMono<BattleManager>
         if (GetEnemy(mySect).Count == 0)
         {
             Debug.Log("you win");
-            UIManager.Instance.BattleEnd(true);
+            BattleUIManager.Instance.BattleEnd(true);
         }
         if (players.Count == 0)
         {
             Debug.Log("you Lose");
-            UIManager.Instance.BattleEnd(false);
+            BattleUIManager.Instance.BattleEnd(false);
         }
     }
 
@@ -526,7 +534,7 @@ public class BattleManager : SingletonMono<BattleManager>
             Debug.Log("被动技能");
             return;
         }
-        if (nowCharacter.getRole().equipedSkills[id].Info.CD > 0)
+        if (nowCharacter.getRole().equipedSkills[id].cd > 0)
         {
             Debug.Log("技能还没冷却");
             return;
@@ -539,16 +547,16 @@ public class BattleManager : SingletonMono<BattleManager>
         //这个id是第几个按钮的技能，不是技能id
         lastSkillId = id;
         //TODO:实现多种技能放在一个技能槽选择，梦战那样，可以在这里再封装一个方法
-        ShowActiveSkill_ReleaseRange2();
+        ShowActiveSkill_ReleaseRange();
     }
 
-    private void ShowActiveSkill_ReleaseRange2()
+    private void ShowActiveSkill_ReleaseRange()
     {
         this.usingSkill = nowCharacter.ShowActiveSkill_ReleaseRange(lastSkillId);
         ShowActiveSkill(nowCharacter, (uint)usingSkill.Info.RangeO);
         this.showskillReleaseRange = true;
 
-        UIManager.Instance.ShowSkillSelectTarget(true);
+        BattleUIManager.Instance.ShowSkillSelectTarget(true);
     }
 
     private void ShowActiveSkill_ActionRange(Skill skill, Character target)
@@ -565,7 +573,7 @@ public class BattleManager : SingletonMono<BattleManager>
         if (to != null && canSelect(from, to, usingSkill))
         {
             ShowActiveSkill_ActionRange(this.usingSkill, skillTarget);
-            UIManager.Instance.ShowSkillConfirm(true);
+            BattleUIManager.Instance.ShowSkillConfirm(true);
         }
     }
 
@@ -578,7 +586,7 @@ public class BattleManager : SingletonMono<BattleManager>
         if (to != null && canSelect(from, to, usingSkill))
         {
             ShowActiveSkill_ActionRange(this.usingSkill, skillTarget);
-            UIManager.Instance.ShowSkillConfirm(true);
+            BattleUIManager.Instance.ShowSkillConfirm(true);
         }
     }
 
@@ -597,7 +605,8 @@ public class BattleManager : SingletonMono<BattleManager>
     public void ConfirmClick()
     {
         this.nowCharacter.Releaseskill(this.usingSkill, skillTarget);
-        UIManager.Instance.actionPanel.SetActive(false);
+        BattleUIManager.Instance.actionPanel.SetActive(false);
+        BattleUIManager.Instance.actionOrder.gameObject.SetActive(false);
     }
 
     public void confirmUseSkill_AI(Character from, Character to)
@@ -616,14 +625,14 @@ public class BattleManager : SingletonMono<BattleManager>
         UpdateActionPanel(nowCharacter);
         this.ShowMoveRange(nowCharacter);
 
-        UIManager.Instance.ShowSkillSelectTarget(false);
+        BattleUIManager.Instance.ShowSkillSelectTarget(false);
     }
 
     internal void Cancel_SkillConfirm()
     {
-        this.ShowActiveSkill_ReleaseRange2();
+        this.ShowActiveSkill_ReleaseRange();
 
-        UIManager.Instance.ShowSkillConfirm(false);
+        BattleUIManager.Instance.ShowSkillConfirm(false);
 
     }
 
@@ -643,9 +652,9 @@ public class BattleManager : SingletonMono<BattleManager>
             orderSect = Sect.Blue;
 
         if (orderSect == mySect)
-            UIManager.Instance.ShowOrderTip("orderTipOpen_My");
+            BattleUIManager.Instance.ShowOrderTip("orderTipOpen_My");
         else
-            UIManager.Instance.ShowOrderTip("orderTipOpen_Enemy");
+            BattleUIManager.Instance.ShowOrderTip("orderTipOpen_Enemy");
 
         //把所有玩家设置为可行动
         foreach (Character unit in GetPlayers(orderSect))
@@ -747,7 +756,7 @@ public class BattleManager : SingletonMono<BattleManager>
         nowCharacter = from;
         nowCharacter.target = to;
         currentMovePath = AStar.FindPath(nowCharacter, nowCharacter.tileIndex, nowCharacter.tileIndex, to.tileIndex,
-                    true, nowCharacter.movePower, nowCharacter.movePower, map, nowCharacter.min_AttackRange, nowCharacter.max_AttackRange,
+                    true, nowCharacter.getRole().movePower, nowCharacter.getRole().movePower, map, nowCharacter.min_AttackRange, nowCharacter.max_AttackRange,
                     true, true, null, null, null, range, GetEnemyList(mySect));
     }
 
@@ -783,16 +792,17 @@ public class BattleManager : SingletonMono<BattleManager>
         PlayerData.ArmyIndexes = list;
     }
 
+    //TODO:交换逻辑得改
     public void ExchangeBattleUnit(Role role)
     {
-        nowCharacter.pid = role.pid;
+        //nowCharacter.pid = role.pid;
         nowCharacter.Init();
     }
 
     bool InteractWithUI()
     {
         //EventSystem.current.currentSelectedGameObject 只作用于按钮 IsPointerOverGameObject 作用于全部
-        if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null)
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
         {
             return true;
         }

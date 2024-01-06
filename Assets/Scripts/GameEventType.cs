@@ -1,4 +1,4 @@
-public class GameEventType
+﻿public class GameEventType
 {
     public static readonly int showHitEffect = 0;
     //伤害飘血

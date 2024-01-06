@@ -28,10 +28,7 @@ public class Item
     public int addWeight;
     public int addRangeI;
     public int addRangeO;
-    public int addHit;
-    public int addCritical;
-    public int addAvoid;
-    public int addSecure;
+
     /// <summary>
     /// 剩余使用次数
     /// </summary>

@@ -1,4 +1,4 @@
-using AIBehaviorTree;
+﻿using AIBehaviorTree;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,7 +27,7 @@ public class MoveToTarget : ActionBehavior
             enemyLists.Add(item.tileIndex);
         }
         //这里用enemy[0]来寻路，实际上应该选最短或者血最少的
-        AStar.MoveableArea(playerC, playerC.tileIndex, playerC.movePower, BattleManager.Instance.map, dic, enemyLists);
+        AStar.MoveableArea(playerC, playerC.tileIndex, playerC.getRole().movePower, BattleManager.Instance.map, dic, enemyLists);
         moveRangePath.Add(playerC.tileIndex);
         foreach (var i in dic.Keys)
         {
@@ -40,7 +40,7 @@ public class MoveToTarget : ActionBehavior
 
         }
         currentMovePath = AStar.FindPath(playerC, playerC.tileIndex, playerC.tileIndex, enemy[0].tileIndex,
-                        true, playerC.movePower, playerC.movePower, BattleManager.Instance.map, 0, 0,
+                        true, playerC.getRole().movePower, playerC.getRole().movePower, BattleManager.Instance.map, 0, 0,
                         true, true, null, null, null, moveRangePath, enemyLists);
 
         BattleManager.Instance.SetDestination(currentMovePath, playerC);

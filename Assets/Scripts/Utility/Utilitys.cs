@@ -96,11 +96,11 @@ public class Utilitys
         sb.AppendLine("<Units>");
         for (int i = 0; i < level.map.tilesList.Count; i++)
         {
-            if (level.map.tiles[i].character != null)
-                sb.AppendLine(string.Format("<unit name=\"{0}\" index=\"{1}\" isPlayer=\"{2}\"/>",
-                    level.map.tiles[i].character.unitName,
-                    level.map.tiles[i].character.tileIndex,
-                    level.map.tiles[i].character.gameObject.CompareTag("Player")));
+            if (level.map.tiles[i].unitMono != null)
+                sb.AppendLine(string.Format("<unit pid=\"{0}\" index=\"{1}\" isPlayer=\"{2}\"/>",
+                    level.map.tiles[i].unitMono.pid,
+                    level.map.tiles[i].unitMono.tileIndex,
+                    level.map.tiles[i].unitMono.gameObject.CompareTag("Player")));
         }
         sb.AppendLine("</Units>");
 
@@ -131,7 +131,7 @@ public class Utilitys
         {
             XmlNode node = nodes[i];
             UnitInfo p = new UnitInfo(
-                node.Attributes["name"].Value,
+                node.Attributes["pid"].Value,
                 int.Parse(node.Attributes["index"].Value),
                 bool.Parse(node.Attributes["isPlayer"].Value));
 

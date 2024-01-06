@@ -15,7 +15,6 @@ public class SkillInfo
     public int Priority; // 習得優先度
     public int Order; // 実行順
     public int Cycle; // 更新周期，即CD
-    public int CD; // 剩余CD数
     public int MPCost; // 消耗MP数
     public int Life; // 寿命，持续回合
     public int Timing; // タイミング

@@ -59,7 +59,7 @@ public class InfoUI : MonoBehaviour
 
             if (skill.Info.SkillType != 0)
             {
-                var cd = skill.Info.CD;
+                var cd = skill.cd;
                 skillPanel.GetChild(i).GetChild(0).gameObject.SetActive(cd > 0);
                 skillPanel.GetChild(i).GetChild(0).GetComponentInChildren<Text>().text = cd.ToString();
             }

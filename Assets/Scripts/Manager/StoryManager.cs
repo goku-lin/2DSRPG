@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -39,8 +39,8 @@ public class StoryManager : SingletonMono<StoryManager>
             dialogUI.gameObject.SetActive(false);
             canTalk = false;
             dialogUI.canTalk = false;
-            if (UIManager.Instance != null)
-                UIManager.Instance.gameObject.SetActive(true);
+            if (BattleUIManager.Instance != null)
+                BattleUIManager.Instance.gameObject.SetActive(true);
             return;
         }
         Story story = DataManager.GetInstance().storyData[did];

@@ -1,4 +1,4 @@
-//
+﻿//
 // Auto Generated Code By excel2json
 // https://neil3d.gitee.io/coding/excel2json.html
 // 1. 每个 Sheet 形成一个 Struct 定义, Sheet 的名称作为 Struct 的名称
@@ -8,7 +8,7 @@
 
 public class Person
 {
-    public int Pid; // 個人
+    public string Pid; // 個人
     public string Fid; // 文件
     public string Name; // 名前
     public string Jid; // 兵種

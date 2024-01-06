@@ -1,3 +1,4 @@
+using Game;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -7,15 +8,14 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.Progress;
 
 public class PlayerData
 {
-    public static SortedDictionary<int, Role> Army = new SortedDictionary<int, Role>();
+    public static Dictionary<string, Role> Army = new Dictionary<string, Role>();
     public static Dictionary<int, Role> TempArmy = new Dictionary<int, Role>();
     public static List<int> ArmyIndexes = new List<int>();
     //已阵亡角色
-    public static Dictionary<int, Role> Graveyard = new Dictionary<int, Role>();
+    public static Dictionary<string, Role> Graveyard = new Dictionary<string, Role>();
     /// <summary>仓库</summary>
     public static SortedDictionary<long, Item> Warehouse = new SortedDictionary<long, Item>();
     public static Dictionary<int, int> ShopStorage = new Dictionary<int, int>();
@@ -30,7 +30,7 @@ public class PlayerData
 
     public static void Init()
     {
-        PlayerData.Army = new SortedDictionary<int, Role>();
+        PlayerData.Army = new Dictionary<string, Role>();
         PlayerData.ArmyIndexes = new List<int>();
         PlayerData.TempArmy = new Dictionary<int, Role>();
         PlayerData.Warehouse = new SortedDictionary<long, Item>();
@@ -38,13 +38,13 @@ public class PlayerData
         PlayerData.GeneratedItemUID = 0L;
         PlayerData.Money = 0L;
         //TODO:后面找找怎么加角色好
-        Army.Add(1, new Role(1));
-        Army.Add(2, new Role(2));
+        Army.Add("PID_遠坂凛", new Role("PID_遠坂凛"));
+        Army.Add("PID_遠坂桜", new Role("PID_遠坂桜"));
     }
 
-    public static Role GetRole(int characterId, int actorId)
+    public static Role GetRole(string characterId, int actorId)
     {
-        if (characterId < 0)
+        if (characterId == null)
         {
             return null;
         }

@@ -10,8 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2552165284682194921}
   - component: {fileID: 2552165284682194920}
-  - component: {fileID: 2552165284682194922}
-  - component: {fileID: 2552165284682194923}
+  - component: {fileID: -4947039863106858301}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -86,7 +85,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &2552165284682194922
+--- !u!114 &-4947039863106858301
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -95,50 +94,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2552165284682194711}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 77a61938ae129a4498987d4c6bf9f8ac, type: 3}
+  m_Script: {fileID: 11500000, guid: 801c01cd9dd8e3b49866b7480b0de46b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: 
-  level: 0
-  attribute:
-    maxHp: 1000
-    hp: 500
-    attack: 200
-    defend: 100
-    quick: 0
-    luck: 0
-    tech: 0
-    min_AttackRange: 1
-    max_AttackRange: 2
-  movePower: 3
-  job: 0
-  weaponName: 
-  sect: 1
+  pid: 
   tileIndex: 0
-  startIndex: 0
-  state: 0
-  target: {fileID: 0}
-  behaviorAI: {fileID: 0}
-  skillcfg: 04000000000000000000000000000000
-  battleAttribute:
-    maxHp: 0
-    hp: 0
-    attack: 0
-    defend: 0
-    quick: 0
-    luck: 0
-    tech: 0
-    min_AttackRange: 1
-    max_AttackRange: 1
---- !u!114 &2552165284682194923
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2552165284682194711}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 821d39330fe104d4fb23ea1309200b74, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  isPlayer: 0

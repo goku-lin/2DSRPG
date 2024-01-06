@@ -18,7 +18,7 @@ public enum MulAttributeKey
 [System.Serializable]
 public class Role
 {
-    public int pid;
+    public string pid;
     public string unitName;
     public int lv;
     public float exp;
@@ -52,7 +52,7 @@ public class Role
 
     private Role() { }
 
-    public Role(int characterId)
+    public Role(string characterId)
     {
         this.pid = characterId;
         Person personInfo = this.getBasicInfo();
@@ -435,7 +435,7 @@ public class Role
 
     public static Role readRecord(BinaryReader reader)
     {
-        int tempPid = reader.ReadInt32();
+        string tempPid = reader.ReadString();
         Role role = new Role(tempPid);
         role.lv = reader.ReadInt32();
         role.exp = reader.ReadSingle();

@@ -6,6 +6,7 @@ using UnityEngine;
 public class Skill
 {
     public SkillInfo Info;
+    public int cd;
     public ActiveSkillAction activeSkillAction;
 
     public void saveRecord(BinaryWriter writer)

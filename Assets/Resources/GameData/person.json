@@ -1,6 +1,6 @@
 [
   {
-    "Pid": "0",
+    "Pid": "PID_不明",
     "Fid": "PID_不明",
     "Name": "不明",
     "Jid": "JID_不明",
@@ -35,7 +35,7 @@
     "Hometown": "1"
   },
   {
-    "Pid": "1",
+    "Pid": "PID_遠坂凛",
     "Fid": "PID_遠坂凛",
     "Name": "远坂凛",
     "Jid": "JID_魔术师(凛)",
@@ -70,7 +70,7 @@
     "Hometown": "1"
   },
   {
-    "Pid": "2",
+    "Pid": "PID_遠坂桜",
     "Fid": "PID_遠坂桜",
     "Name": "远坂樱",
     "Jid": "JID_魔术师(樱)",
@@ -100,7 +100,42 @@
     "GrowTech": "50",
     "GrowQuick": "50",
     "Items": "IID_鉄の剣;IID_鉄の弓;",
-    "CommonSids": "SID_123;SID_456;",
+    "CommonSids": "SID_引雷之术;SID_气愈之术;",
+    "CombatBgm": "",
+    "Hometown": "1"
+  },
+  {
+    "Pid": "OID_木箱",
+    "Fid": "PID_木箱",
+    "Name": "木箱",
+    "Jid": "JID_物品",
+    "Help": "箱子，会阻挡前进",
+    "Belong": "",
+    "UnitIconID": "",
+    "Age": "-1",
+    "Gender": "0",
+    "BirthMonth": "0",
+    "BirthDay": "0",
+    "Lv": "1",
+    "BmapSize": "1",
+    "BaseHp": "100",
+    "BaseStr": "0",
+    "BaseMagic": "0",
+    "BaseDef": "0",
+    "BaseMdef": "0",
+    "BaseTech": "0",
+    "BaseQuick": "0",
+    "BaseMP": "0",
+    "BaseMove": "0",
+    "GrowHp": "0",
+    "GrowStr": "0",
+    "GrowMagic": "0",
+    "GrowDef": "0",
+    "GrowMdef": "0",
+    "GrowTech": "0",
+    "GrowQuick": "0",
+    "Items": "",
+    "CommonSids": "",
     "CombatBgm": "",
     "Hometown": "1"
   }
