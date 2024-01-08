@@ -2,12 +2,12 @@
 <Level>
 <Name>BG001</Name>
 <Units>
-<unit pid="" index="37" isPlayer="True"/>
-<unit pid="OID_木箱" index="39" isPlayer="False"/>
-<unit pid="PID_不明" index="41" isPlayer="False"/>
+<unit pid="PID_不明" index="37" isPlayer="True"/>
+<unit pid="PID_不明" index="38" isPlayer="True"/>
+<unit pid="OID_木箱" index="40" isPlayer="False"/>
+<unit pid="PID_不明" index="42" isPlayer="False"/>
 <unit pid="PID_不明" index="43" isPlayer="False"/>
-<unit pid="" index="54" isPlayer="True"/>
-<unit pid="PID_不明" index="61" isPlayer="False"/>
 <unit pid="PID_不明" index="73" isPlayer="False"/>
+<unit pid="PID_不明" index="79" isPlayer="False"/>
 </Units>
 </Level>

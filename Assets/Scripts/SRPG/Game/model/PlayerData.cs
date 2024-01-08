@@ -12,6 +12,9 @@ using UnityEngine.UI;
 public class PlayerData
 {
     public static Dictionary<string, Role> Army = new Dictionary<string, Role>();
+    /// <summary>
+    /// 临时队伍，战斗的时候用
+    /// </summary>
     public static Dictionary<int, Role> TempArmy = new Dictionary<int, Role>();
     public static List<int> ArmyIndexes = new List<int>();
     //已阵亡角色
@@ -40,24 +43,27 @@ public class PlayerData
         //TODO:后面找找怎么加角色好
         Army.Add("PID_遠坂凛", new Role("PID_遠坂凛"));
         Army.Add("PID_遠坂桜", new Role("PID_遠坂桜"));
+        Army.Add("PID_锦木千束", new Role("PID_锦木千束"));
+        Army.Add("PID_井上泷奈", new Role("PID_井上泷奈"));
     }
 
-    public static Role GetRole(string characterId, int actorId)
+    public static Role GetRole(string pid, int uid)
     {
-        if (characterId == null)
+        if (pid == null)
         {
             return null;
         }
-        if (PlayerData.Army.ContainsKey(characterId))
+        if (PlayerData.Army.ContainsKey(pid))
         {
-            return PlayerData.Army[characterId];
+            return PlayerData.Army[pid];
         }
-        if (!PlayerData.TempArmy.ContainsKey(actorId))
+        //临时队伍
+        if (!PlayerData.TempArmy.ContainsKey(uid))
         {
-            Role value = new Role(characterId);
-            PlayerData.TempArmy[actorId] = value;
+            Role value = new Role(pid);
+            PlayerData.TempArmy[uid] = value;
         }
-        return PlayerData.TempArmy[actorId];
+        return PlayerData.TempArmy[uid];
     }
 
     /// <summary>

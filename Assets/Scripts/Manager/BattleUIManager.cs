@@ -1,8 +1,7 @@
 using PathologicalGames;
 using System;
 using System.Collections;
-using Unity.Mathematics;
-using Unity.VisualScripting;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,7 +15,6 @@ public class BattleUIManager : SingletonMono<BattleUIManager>
     private SpawnPool spawnPool;
     private CanvasRenderer hudCanvas;
 
-    [HideInInspector] public SkillButton[] skill_slot = new SkillButton[4];
     [HideInInspector] public Button auto_AI;
     private GameObject skillSelectTarget;
     private GameObject skillConfirm;
@@ -31,7 +29,7 @@ public class BattleUIManager : SingletonMono<BattleUIManager>
     private Image playerPicture;
     private Image targetPicture;
 
-    private Transform battleReadyUI;
+    public Transform battleReadyUI;
     private Transform selectUnitPanel;
     private GameObject characterFace;
 
@@ -42,23 +40,43 @@ public class BattleUIManager : SingletonMono<BattleUIManager>
 
     public ActionOrder actionOrder;
 
+    Dictionary<string, GameObject> faceDic = new Dictionary<string, GameObject>();
 
     protected override void Awake()
     {
         base.Awake();
-        this.hudCanvas = this.transform.Find("hudCanvas").GetComponent<CanvasRenderer>();
-        this.spawnPool = hudCanvas.gameObject.AddComponent<SpawnPool>();
+        InitializeUIComponents();
+        InitializeEventListeners();
+        InitializeObjectPool();
+    }
 
+    private void InitializeUIComponents()
+    {
+        hudCanvas = transform.Find("hudCanvas").GetComponent<CanvasRenderer>();
+        infoUI = transform.Find("InfoUI").gameObject;
+        actionPanel = transform.Find("ActionUI/ActionPanel").gameObject;
+        // ... 初始化其他UI组件 ...
+    }
+
+    private void InitializeEventListeners()
+    {
         EventDispatcher.instance.Regist<int, Vector3>(GameEventType.showHudDamage, this.ShowHudDamage);
-        //创建对象池 伤害字体
-        var i = ResourcesExt.Load<GameObject>("ui/hudItem");
-        var prefabPool = new PrefabPool(i.transform);
-        this.spawnPool.CreatePrefabPool(prefabPool);
+        // ... 添加其他事件监听 ...
+    }
 
-        //绿色字体
-        i = ResourcesExt.Load<GameObject>("ui/hudText_green");
-        prefabPool = new PrefabPool(i.transform);
-        this.spawnPool.CreatePrefabPool(prefabPool);
+    private void InitializeObjectPool()
+    {
+        spawnPool = hudCanvas.gameObject.AddComponent<SpawnPool>();
+        CreateObjectPool("ui/hudItem");
+        CreateObjectPool("ui/hudText_green");
+        // ... 创建其他对象池 ...
+    }
+
+    private void CreateObjectPool(string resourcePath)
+    {
+        var prefab = ResourcesExt.Load<GameObject>(resourcePath);
+        var prefabPool = new PrefabPool(prefab.transform);
+        spawnPool.CreatePrefabPool(prefabPool);
     }
 
     private void Start()
@@ -74,24 +92,7 @@ public class BattleUIManager : SingletonMono<BattleUIManager>
         cancelAttackBtn.onClick.AddListener(CloseAttackUI);
 
         bag = transform.Find("Bag").gameObject;
-        this.transform.Find("ActionUI/BagBtn").GetComponent<Button>().onClick.AddListener(OpenBag);
-
-        for (int i = 0; i < 3; i++)
-        {
-            var btn = new SkillButton();
-            btn.button = actionPanel.transform.Find("skill_slot" + i).GetComponent<Button>();
-            btn.cdImage = btn.button.transform.Find("cd_Image").GetComponent<Image>();
-            btn.cdText = btn.cdImage.transform.Find("cdText").GetComponent<Text>();
-            skill_slot[i] = btn;
-        }
-
-        //订阅技能按钮
-        for (int i = 0; i < 3; i++)
-        {
-            //闭包
-            var tempIdx = i;
-            skill_slot[i].button.onClick.AddListener(() => { Skill_slotClick(tempIdx); });
-        }
+        //this.transform.Find("ActionUI/BagBtn").GetComponent<Button>().onClick.AddListener(OpenBag);
 
         this.skillSelectTarget = this.transform.Find("ActionUI/skillSelectTarget").gameObject;
 
@@ -116,9 +117,10 @@ public class BattleUIManager : SingletonMono<BattleUIManager>
 
         battleReadyUI = transform.Find("BattleReadyUI");
         battleReadyUI.Find("StartBattle").GetComponent<Button>().onClick.AddListener(StartBattle);
-        battleReadyUI.Find("SelectBattleUnit").GetComponent<Button>().onClick.AddListener(SelectBattleUnit);
+        battleReadyUI.Find("ChangeBattleUnit").GetComponent<Button>().onClick.AddListener(ChangeBattleUnit);
         selectUnitPanel = battleReadyUI.Find("SelectUnitPanel");
         characterFace = ResourcesExt.Load<GameObject>("Prefabs/CharacterFace");
+        battleReadyUI.Find("ChangePos").GetComponent<Button>().onClick.AddListener(ChangePos);
 
         battleEndPanel = transform.Find("BattleEndPanel");
         battleEndPanel.Find("ReturnWorld").GetComponent<Button>().onClick.AddListener(() => SceneManagerExt.instance.LoadSceneShowProgress(GameDefine.SceneType.GameWorld));
@@ -162,24 +164,44 @@ public class BattleUIManager : SingletonMono<BattleUIManager>
     /// <summary>
     /// 战斗前选择出战单位
     /// </summary>
-    private void SelectBattleUnit()
+    private void ChangeBattleUnit()
     {
         if (BattleManager.Instance.nowCharacter == null) return;
+
         selectUnitPanel.gameObject.SetActive(true);
-        if (selectUnitPanel.childCount > 0) return;
-        foreach (var item in PlayerData.Army.Values)
+        if (selectUnitPanel.childCount == 0)
         {
-            GameObject face = Instantiate(characterFace, selectUnitPanel);
-            face.transform.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Face/" + item.unitName);
-            face.GetComponent<Button>().onClick.AddListener(() => { ExchangeBattleUnit(item, face); });
-            //if (item.unitName == BattleManager.Instance.nowCharacter.unitName)
-            //    face.SetActive(false);
+            foreach (var role in PlayerData.Army.Values)
+            {
+                GameObject face = Instantiate(characterFace, selectUnitPanel);
+                face.transform.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Face/" + role.unitName);
+                face.GetComponent<Button>().onClick.AddListener(() => { ExchangeBattleUnit(role); });
+                faceDic.Add(role.unitName, face);
+                if (BattleManager.Instance.isEmbattle(role)) face.SetActive(false);
+            }
+        }
+        else
+        {
+            foreach (var role in PlayerData.Army.Values)
+            {
+                if (BattleManager.Instance.isEmbattle(role)) faceDic[role.unitName].SetActive(false);
+                else faceDic[role.unitName].SetActive(true);
+            }
         }
     }
 
-    private void ExchangeBattleUnit(Role role, GameObject face)
+    private void ChangePos()
+    {
+        BattleManager.Instance.isChangePos = true;
+        BattleManager.Instance.CancelSelect();
+        battleReadyUI.gameObject.SetActive(false);
+    }
+
+    private void ExchangeBattleUnit(Role role)
     {
         BattleManager.Instance.ExchangeBattleUnit(role);
+        selectUnitPanel.gameObject.SetActive(false);
+        //battleReadyUI.gameObject.SetActive(true);
     }
 
     private void InitBattle(Text[] tempBattleUI, out Image picture, string unitBattleUIName)
@@ -192,13 +214,45 @@ public class BattleUIManager : SingletonMono<BattleUIManager>
         picture = temp.Find("Picture").GetComponent<Image>();
     }
 
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(1))
+        {
+            if (selectUnitPanel.gameObject.activeSelf)
+                selectUnitPanel.gameObject.SetActive(false);
+        }
+    }
+
     //显示行动命令指令
     public void OpenActionOrder(Character character)
     {
         actionOrder.gameObject.SetActive(true);
-        var screenPos = GetScreenPos(Camera.main, character.transform.position + new Vector3(0, -0.6f, 0));
-        actionOrder.transform.position = screenPos;
         actionOrder.Init(character.getRole());
+        UpdateActionPanel(BattleManager.Instance.nowCharacter);
+    }
+
+    private void UpdateActionPanel(Character player)
+    {
+        actionPanel.SetActive(true);
+        List<Skill> learnedSkill = player.getRole().equipedSkills;
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (i >= learnedSkill.Count) continue;
+            var skill = learnedSkill[i];
+
+            //TODO:给自己技能写上冷却
+            if (skill.Info.SkillType != 0)
+            {
+                var cd = skill.cd;
+                Transform cdTrans = actionOrder.skillList[i].transform.Find("cd");
+                cdTrans.gameObject.SetActive(cd != 0);
+                if (cd == 0) continue;
+                cdTrans.GetComponentInChildren<Text>().text = cd.ToString();
+                //BattleUIManager.Instance.skill_slot[i].cdImage.gameObject.SetActive(cd > 0);
+                //BattleUIManager.Instance.skill_slot[i].cdText.text = cd.ToString();
+            }
+        }
     }
 
     //战斗UI和行动UI的变化
@@ -280,12 +334,6 @@ public class BattleUIManager : SingletonMono<BattleUIManager>
         }
     }
 
-    //按钮使用技能
-    private void Skill_slotClick(int id)
-    {
-        BattleManager.Instance.UseSkill(id);
-    }
-
     //技能使用确认
     private void ConfirmClick()
     {
@@ -347,7 +395,7 @@ public class BattleUIManager : SingletonMono<BattleUIManager>
 
     private void OnSettingBtnClick()
     {
-        var go = ResourcesExt.Load<GameObject>("uiPanel/settingPanel");
+        var go = ResourcesExt.Load<GameObject>("UI/settingPanel");
 
         var rgo = MonoBehaviour.Instantiate(go);
         rgo.transform.SetParent(this.transform, false);

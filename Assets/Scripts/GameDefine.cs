@@ -7,7 +7,8 @@ public class GameDefine
     public enum Sect : uint
     {
         Blue, 
-        Red
+        Red,
+        Grey
     }
 
     public enum PlayerSate : uint

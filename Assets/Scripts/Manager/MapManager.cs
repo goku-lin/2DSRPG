@@ -1,11 +1,8 @@
 using France.Game.model.level;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.IO;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class MapManager : SingletonMono<MapManager>
 {
@@ -55,64 +52,79 @@ public class MapManager : SingletonMono<MapManager>
     public void LoadUnit(string nowLevel)
     {
         List<UnitInfo> characters = Utilitys.LoadUnit(Application.streamingAssetsPath + "/Character/" + nowLevel + ".xml");
-
         int j = 0;
         for (int i = 0; i < characters.Count; i++)
         {
             if (characters[i].isPlayer)
             {
-                LoadPlayer(j++, characters[i], i);
+                CreateCharacter(characters[i], i, true, PlayerData.Army.ElementAt(j++).Value);
                 continue;
             }
-            GActor gactor = GActor.CreateActor(i, 1);
-            level.actors[i] = gactor;
-            GameObject tempUnit = Instantiate(characterPrafab);
-            Character unit = tempUnit.GetComponent<Character>();
-
-            unit.model = (GFightUnit)gactor;
-            //TODO:敌方的名字想办法处理
-            unit.model.pid = characters[i].pid;
-
-            Role role = unit.getRole();
-
-            unit.tileIndex = characters[i].tileIndex;
-            unit.startIndex = unit.tileIndex;
-            unit.transform.position = map.tiles[unit.tileIndex].transform.position;
-            map.tiles[unit.tileIndex].character = unit;
-
-            unit.sect = GameDefine.Sect.Red;
-            unit.model.teamId = 1;
-            tempUnit.name = "Character:" + role.unitName;
-            tempUnit.GetComponentInChildren<SpriteRenderer>().sprite = Resources.Load<Sprite>("Picture/" + role.unitName);
-            //TODO:这里没弄pid和init
-            unit.model.actorObject = tempUnit;
-            gactor.createObj();
+            else
+            {
+                CreateCharacter(characters[i], i, false, null);
+                continue;
+            }
         }
     }
 
-    public void LoadPlayer(int playerNum, UnitInfo player, int uid)
+    private void CreateCharacter(UnitInfo unitInfo, int uid, bool isPlayer, Role role)
     {
-        Role role = PlayerData.Army.ElementAt(playerNum).Value;
-        GActor gactor = GActor.CreateActor(uid, 1);
-        level.actors[uid] = gactor;
-
-        GameObject tempUnit = Instantiate(characterPrafab);
-        Character unit = tempUnit.GetComponent<Character>();
-
-        unit.tileIndex = player.tileIndex;
+        // 共通的角色创建逻辑
+        GameObject unitGO = Instantiate(characterPrafab);
+        Character unit = unitGO.GetComponent<Character>();
+        //地图位置
+        unit.tileIndex = unitInfo.tileIndex;
         unit.startIndex = unit.tileIndex;
         unit.transform.position = map.tiles[unit.tileIndex].transform.position;
         map.tiles[unit.tileIndex].character = unit;
-
-        unit.sect = GameDefine.Sect.Blue;
-        tempUnit.name = "Character:" + role.unitName;
-        tempUnit.GetComponentInChildren<SpriteRenderer>().sprite = Resources.Load<Sprite>("Picture/" + role.unitName);
-
+        //角色模型
+        GActor gactor = GActor.CreateActor(uid, 1);
+        level.actors[uid] = gactor;
+        //角色model参数
         unit.model = (GFightUnit)gactor;
-        unit.model.teamId = 0;
-        unit.model.pid = role.pid;
-        unit.model.actorObject = tempUnit;
+        unit.model.actorObject = unitGO;
+
+        if (isPlayer)
+        {
+            unit.model.pid = role.pid;
+            unit.sect = GameDefine.Sect.Blue;
+            unit.model.teamId = (int)GameDefine.Sect.Blue;
+        }
+        else if (char.ToUpper(unitInfo.pid[0]) == 'O')
+        {
+            unit.model.pid = unitInfo.pid;
+            role = unit.getRole();
+            unit.sect = GameDefine.Sect.Grey;
+            unit.model.teamId = (int)GameDefine.Sect.Grey;
+        }
+        else
+        {
+            unit.model.pid = unitInfo.pid;
+            role = unit.getRole();
+            unit.sect = GameDefine.Sect.Red;
+            unit.model.teamId = (int)GameDefine.Sect.Red;
+        }
+        unitGO.name = "Character:" + role.unitName;
+        unitGO.GetComponentInChildren<SpriteRenderer>().sprite = Resources.Load<Sprite>("Picture/" + role.unitName);
+
         gactor.createObj();
-        //unit.Init();
+    }
+}
+
+/// <summary>
+/// 专门用在地图编辑保存单位数据
+/// </summary>
+public class UnitInfo
+{
+    public string pid;
+    public int tileIndex;
+    public bool isPlayer;
+
+    public UnitInfo(string pid, int tileIndex, bool isPlayer)
+    {
+        this.pid = pid;
+        this.tileIndex = tileIndex;
+        this.isPlayer = isPlayer;
     }
 }

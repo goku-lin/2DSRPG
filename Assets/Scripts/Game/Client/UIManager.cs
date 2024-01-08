@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Game.Client
@@ -56,32 +55,30 @@ namespace Game.Client
         private void onConfigLoaded()
         {
             this.isLoaded = true;
-            UIManager.AssetInfo assetInfo = new UIManager.AssetInfo();
-            assetInfo.assetBundleName = "PopItemInfoMenu";
-            assetInfo.gameObjectName = "PopItemInfoMenu";
-            assetInfo.loadType = LoadType.RESOURCES;
-            {
-                //TODO:找预制体
-                //Debug.Log(assetInfo.gameObjectName);
-                this.assetInfo.Add("PopItemInfoMenu", assetInfo);
-            }
+            this.assetInfo = new Dictionary<string, UIManager.AssetInfo>();
 
-            assetInfo.assetBundleName = "PopSkillInfoMenu";
-            assetInfo.gameObjectName = "PopSkillInfoMenu";
-            assetInfo.loadType = LoadType.RESOURCES;
-            {
-                //TODO:找预制体
-                //Debug.Log(assetInfo.gameObjectName);
-                this.assetInfo.Add("PopSkillInfoMenu", assetInfo);
-            }
+            TextAsset textAsset = Resources.Load<TextAsset>("GameData/UIConfig");
+            XmlDocument uiXML = new XmlDocument();
+            uiXML.LoadXml(textAsset.text);
+            XmlElement documentElement = uiXML.DocumentElement;
+            XmlNodeList xmlNodeList = documentElement.SelectNodes("UI");
 
-            assetInfo.assetBundleName = "PopDialog";
-            assetInfo.gameObjectName = "PopDialog";
-            assetInfo.loadType = LoadType.RESOURCES;
+            foreach (XmlNode node in xmlNodeList)
             {
-                //TODO:找预制体
-                //Debug.Log(assetInfo.gameObjectName);
-                this.assetInfo.Add("PopDialog", assetInfo);
+                UIManager.AssetInfo assetInfo = new UIManager.AssetInfo();
+                string uiName = node.Attributes["uiname"].Value;
+                assetInfo.assetBundleName = node.Attributes["assetName"].Value;
+                assetInfo.gameObjectName = node.Attributes["goname"].Value;
+                assetInfo.loadType = (UIManager.LoadType)int.Parse(node.Attributes["type"].Value);
+
+                if (!this.assetInfo.ContainsKey(uiName))
+                {
+                    this.assetInfo.Add(uiName, assetInfo);
+                }
+                else
+                {
+                    Debug.LogError("Duplicated UI name: " + uiName);
+                }
             }
         }
 

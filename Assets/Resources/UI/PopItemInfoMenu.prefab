@@ -1136,9 +1136,9 @@ RectTransform:
   m_Father: {fileID: 6584171166820470718}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 100, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 100, y: -250}
   m_SizeDelta: {x: 200, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &449521153306924922
@@ -1492,13 +1492,9 @@ MonoBehaviour:
   exComponents: []
   root: {fileID: 0}
   obj_prop: {fileID: 0}
-  label_helpInfo: {fileID: 6853035815650234420}
-  label_Weight: {fileID: 7415290357222453414}
-  label_attr:
-  - {fileID: 6780498833612419522}
-  - {fileID: 5087633602117680553}
-  - {fileID: 4490681745660166197}
-  - {fileID: 2882139203134657011}
+  helpInfoText: {fileID: 0}
+  weightText: {fileID: 0}
+  attrText: []
   receiveBtn: {fileID: 8945646401916907159}
   equipBtn: {fileID: 8426298522071296005}
   sendBtn: {fileID: 7082362360153081168}

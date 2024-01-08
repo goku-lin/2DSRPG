@@ -159,7 +159,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 99.7, y: 0}
+  m_AnchoredPosition: {x: 276.23, y: 82.4}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3987351124396218067
@@ -176,6 +176,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isNew: 0
   skillBtn: {fileID: 5509837274214015239, guid: c1821420f15a3e84d8f251a34d156247, type: 3}
+  skillList: []
 --- !u!1 &1929385740803162426
 GameObject:
   m_ObjectHideFlags: 0

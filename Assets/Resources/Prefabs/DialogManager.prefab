@@ -114,6 +114,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 222c293d6f6843948b730fa46deb3ea9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  canTalk: 0
 --- !u!1 &6774162010150873016
 GameObject:
   m_ObjectHideFlags: 0
@@ -334,7 +335,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26f591de3449dfb46baca4b8d23e0d84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  did: 0
   dialogUI: {fileID: 0}
+  canTalk: 0
 --- !u!1 &6774162010935454159
 GameObject:
   m_ObjectHideFlags: 0

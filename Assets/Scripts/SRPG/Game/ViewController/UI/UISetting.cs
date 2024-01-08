@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static GameDefine;
 
 public class UISetting : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class UISetting : MonoBehaviour
     Slider soundSlider;
 
     Button gotoHome;
+    Button backWorld;
     Button cancel;
 
     private void Start()
@@ -19,6 +21,8 @@ public class UISetting : MonoBehaviour
         musicSlider = transform.Find("Item/MusicSlider").GetComponent<Slider>();
         soundSlider = transform.Find("Item/SoundSlider").GetComponent<Slider>();
         gotoHome = transform.Find("Item/GotoHome").GetComponent<Button>();
+        backWorld = transform.Find("Item/BackWorld").GetComponent<Button>();
+
         cancel = transform.Find("Cancel").GetComponent<Button>();
         //先更新UI再订阅回调
         musicSlider.value = AudioCtrl.instance.GetMusicValue();
@@ -28,6 +32,7 @@ public class UISetting : MonoBehaviour
 
         cancel.onClick.AddListener(CancelSetting);
         gotoHome.onClick.AddListener(OnGotoHomeClICK);
+        backWorld.onClick.AddListener(BackWorldClICK);
     }
 
     private void CancelSetting()
@@ -39,6 +44,11 @@ public class UISetting : MonoBehaviour
     void OnGotoHomeClICK()
     {
         EventDispatcher.instance.DispatchEvent(GameEventType.GotoHomeClICK);
+    }
+
+    void BackWorldClICK()
+    {
+        SceneManagerExt.instance.LoadSceneShowProgress(SceneType.GameWorld);
     }
 
     private void OnSoundToggle(float arg0)

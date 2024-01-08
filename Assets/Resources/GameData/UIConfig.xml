@@ -1,0 +1,6 @@
+<UIConfig>
+    <UI uiname="PopItemInfoMenu" assetName="" goname="UI/PopItemInfoMenu" type="1"/>
+    <UI uiname="PopSkillInfoMenu" assetName="" goname="UI/PopSkillInfoMenu" type="1"/>
+    <UI uiname="PopDialog" assetName="" goname="UI/PopDialog" type="1"/>
+    <!-- 添加更多UI元素的配置 -->
+</UIConfig>

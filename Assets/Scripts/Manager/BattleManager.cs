@@ -1,14 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.TextCore.Text;
 using static GameDefine;
 
 public class BattleManager : SingletonMono<BattleManager>
 {
     public bool isBeforeBattle;
+    public bool isChangePos;
+    public List<Role> playerRoleList = new List<Role>();
     public List<Character> characters;  //所有角色
     public Character nowCharacter;  //当前控制角色
     public GMapTile[] mapTiles; //所有格子
@@ -43,40 +44,51 @@ public class BattleManager : SingletonMono<BattleManager>
     protected override void Awake()
     {
         base.Awake();
+        InitializeGameSystems();
+        moveTilePrefab = ResourcesExt.Load<GameObject>("Prefabs/MoveGrid");
+        attackTilePrefab = ResourcesExt.Load<GameObject>("Prefabs/AttackGrid");
+        isBeforeBattle = true;
+    }
+
+    private void InitializeGameSystems()
+    {
         EffectCtrl.Init();
         SkillSystem.Instance.Init();
         BehaviorCtrl.Init();
         if (AudioCtrl.instance == null)
             AudioCtrl.Init();
-        moveTilePrefab = ResourcesExt.Load<GameObject>("Prefabs/MoveGrid");
-        attackTilePrefab = ResourcesExt.Load<GameObject>("Prefabs/AttackGrid");
-        isBeforeBattle = true;
     }
-    
+
     private void Start()
     {
         //获得地图
         map = MapManager.Instance.map;
         mapTiles = map.tiles;
-        Character[] tempCharacter;
-        tempCharacter = FindObjectsOfType<Character>();
-        for (int i = 0; i < tempCharacter.Length; i++) //初始化所有角色
-        {
-            //TODO:可以的话，去掉这里的init
-            tempCharacter[i].Init();
-            characters.Add(tempCharacter[i]);
-        }
-
+        InitializeCharacters();
         //Invoke(nameof(NextOrder), 0.1f);
         EventDispatcher.instance.Regist(GameEventType.GotoHomeClICK, this.OnGotoHomeClICK);
     }
 
+    private void InitializeCharacters()
+    {
+        Character[] tempCharacter = FindObjectsOfType<Character>();
+        foreach (Character character in tempCharacter)
+        {
+            //TODO:可以的话，去掉这里的init
+            character.Init();
+            characters.Add(character);
+            playerRoleList.Add(character.getRole());
+        }
+    }
+
+    public bool isEmbattle(Role role)
+    {
+        return playerRoleList.Contains(role);
+    }
+
     private void Update()
     {
-        if (currentMovePath.Count != 0)
-        {
-            MoveTo();
-        }
+        HandleCharacterMovement();
         if (BattleUIManager.Instance.actionOrder.isActiveAndEnabled && !InteractWithUI())
             return;
         //对话时不能动界面
@@ -95,6 +107,14 @@ public class BattleManager : SingletonMono<BattleManager>
             MouseDown();
         }
         DebugLvUp();
+    }
+
+    private void HandleCharacterMovement()
+    {
+        if (currentMovePath.Count != 0)
+        {
+            MoveTo();
+        }
     }
 
     //TODO:debug的，以后记得删掉
@@ -145,22 +165,67 @@ public class BattleManager : SingletonMono<BattleManager>
                 if (hitInfo.collider.CompareTag("Tile"))
                 {
                     GMapTile tempMapTile = hitInfo.collider.gameObject.GetComponent<GMapTile>();
-                    if (tempMapTile.character != null)
+                    if (isChangePos)
                     {
-                        if (isShow)
-                            CancelSelect();
-                        nowCharacter = tempMapTile.character;
-                        EventDispatcher.instance.DispatchEvent(GameEventType.playIdleVoice, nowCharacter.getRole());
-                        this.UpdateActionPanel(nowCharacter);
-                        ShowMoveRange(nowCharacter);
+                        if (tempMapTile.character != null)
+                        {
+                            if (nowCharacter != null)
+                            {
+                                Role tempRole = tempMapTile.character.getRole();
+
+                                UpdateCharacterData(tempMapTile.character, nowCharacter.getRole());
+                                UpdateCharacterData(nowCharacter, tempRole);
+
+                                CancelSelect();
+                            }
+                            else
+                            {
+                                nowCharacter = tempMapTile.character;
+                                ShowMoveRange(nowCharacter);
+                            } 
+                        }
+                        else
+                        {
+                            nowCharacter = null;
+                        }
                     }
                     else
                     {
-                        CancelSelect();
+                        if (tempMapTile.character != null)
+                        {
+                            if (isShow)
+                                CancelSelect();
+                            nowCharacter = tempMapTile.character;
+                            EventDispatcher.instance.DispatchEvent(GameEventType.playIdleVoice, nowCharacter.getRole());
+                            ShowMoveRange(nowCharacter);
+                        }
+                        else
+                        {
+                            CancelSelect();
+                        }
                     }
                 }
             }
         }
+        if (Input.GetMouseButtonDown(1) && !InteractWithUI() && isChangePos)
+        {
+            isChangePos = false;
+            BattleUIManager.Instance.battleReadyUI.gameObject.SetActive(true);
+        }
+    }
+
+    private void UpdateCharacterData(Character character, Role newRole)
+    {
+        if (character == null || newRole == null)
+            return;
+
+        // 更新角色数据
+        character.model.pid = newRole.pid;
+        character.gameObject.name = "Character:" + newRole.unitName;
+        character.gameObject.GetComponentInChildren<SpriteRenderer>().sprite = Resources.Load<Sprite>("Picture/" + newRole.unitName);
+
+        // 初始化角色
+        character.Init();
     }
 
     public void GetMouseDownBehavior(GMapTile tempMapTile)
@@ -190,7 +255,6 @@ public class BattleManager : SingletonMono<BattleManager>
                     CancelSelect();
                 nowCharacter = tempMapTile.character;
                 EventDispatcher.instance.DispatchEvent(GameEventType.playIdleVoice, nowCharacter.getRole());
-                this.UpdateActionPanel(nowCharacter);
                 ShowMoveRange(nowCharacter);
             }
             else
@@ -454,36 +518,6 @@ public class BattleManager : SingletonMono<BattleManager>
         isAttack = false;
     }
 
-    private void UpdateActionPanel(Character player)
-    {
-        BattleUIManager.Instance.actionPanel.SetActive(true);
-        List<Skill> learnedSkill = player.getRole().equipedSkills;
-
-        for (int i = 0; i < 3; i++)
-        {
-            string id;
-            if (i >= learnedSkill.Count)
-                id = "";
-            else id = learnedSkill[i].Info.Name;
-            var showIcon = id != "";
-
-            if (showIcon) BattleUIManager.Instance.skill_slot[i].button.image.sprite = GetSkillTexture(learnedSkill[i].Info.IconLabel);
-            BattleUIManager.Instance.skill_slot[i].button.gameObject.SetActive(showIcon);
-
-            if (i >= learnedSkill.Count) continue;
-            var skill = learnedSkill[i];
-
-            if (skill.Info.SkillType != 0)
-            {
-                var cd = skill.cd;
-                BattleUIManager.Instance.skill_slot[i].cdImage.gameObject.SetActive(cd > 0);
-                BattleUIManager.Instance.skill_slot[i].cdText.text = cd.ToString();
-            }
-            else
-                BattleUIManager.Instance.skill_slot[i].cdImage.gameObject.SetActive(false);
-        }
-    }
-
     //得到技能id对应的图片
     public Sprite GetSkillTexture(string iconLabel)
     {
@@ -521,7 +555,6 @@ public class BattleManager : SingletonMono<BattleManager>
     {
         mapTiles[character.tileIndex].character = null;
         characters.Remove(character);
-        //TODO:血条想个办法优化
         Destroy(character.gameObject, 0.5f);
         //character.gameObject.SetActive(false);
     }
@@ -622,7 +655,6 @@ public class BattleManager : SingletonMono<BattleManager>
     {
         showskillReleaseRange = false;
         this.ClearTile();
-        UpdateActionPanel(nowCharacter);
         this.ShowMoveRange(nowCharacter);
 
         BattleUIManager.Instance.ShowSkillSelectTarget(false);
@@ -795,8 +827,15 @@ public class BattleManager : SingletonMono<BattleManager>
     //TODO:交换逻辑得改
     public void ExchangeBattleUnit(Role role)
     {
-        //nowCharacter.pid = role.pid;
-        nowCharacter.Init();
+        playerRoleList.Remove(nowCharacter.getRole());
+        playerRoleList.Add(role);
+
+        UpdateCharacterData(nowCharacter, role);
+
+        Character temp = nowCharacter;
+        UnShowMoveRange();
+        nowCharacter = temp;
+        ShowMoveRange(nowCharacter);
     }
 
     bool InteractWithUI()

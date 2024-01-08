@@ -129,7 +129,7 @@ namespace Game.Client
             equipID = selectID;
             nowRole.equip = toEquip;
             Destroy(_menu.gameObject);
-            UpdateAction();
+            UpdateAction?.Invoke();
         }
 
         private void SendItem()

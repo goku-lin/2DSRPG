@@ -12,6 +12,8 @@ public class ActionOrder : MonoBehaviour
     Transform skillOrder;
     Transform detail;
 
+    public List<LongClickButton> skillList = new List<LongClickButton>();
+
     public void Init(Role role)
     {
         isNew = true;
@@ -23,6 +25,7 @@ public class ActionOrder : MonoBehaviour
         for (int i = 0; i < skillOrder.childCount; i++)
         {
             Destroy(skillOrder.GetChild(i).gameObject);
+            skillList = new List<LongClickButton>();
         }
         //遍历角色的携带技能，添加进来，同时加上描述
         int j = 0;
@@ -32,9 +35,11 @@ public class ActionOrder : MonoBehaviour
             s.GetComponentInChildren<Text>().text = skill.Info.Name;
             //闭包
             int tempValue = j;
-            s.GetComponent<LongClickButton>().OnClickUp.AddListener(() => { Skill_slotClick(tempValue); });
-            s.GetComponent<LongClickButton>().OnLongPress.AddListener(() => { ShowSkillInfo(skill); });
-            s.GetComponent<LongClickButton>().OnLongClickUp.AddListener(() => { CancelSkillInfo(); });
+            LongClickButton skilllBtn = s.GetComponent<LongClickButton>();
+            skilllBtn.OnClickUp.AddListener(() => { Skill_slotClick(tempValue); });
+            skilllBtn.OnLongPress.AddListener(() => { ShowSkillInfo(skill); });
+            skilllBtn.OnLongClickUp.AddListener(() => { CancelSkillInfo(); });
+            skillList.Add(skilllBtn);
             j++;
         }
         //记录当前角色

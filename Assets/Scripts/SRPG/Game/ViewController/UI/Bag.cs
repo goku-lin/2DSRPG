@@ -1,8 +1,10 @@
+using Game.Client;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEditor.Progress;
 
 public class Bag : MonoBehaviour
 {
@@ -30,6 +32,17 @@ public class Bag : MonoBehaviour
     private void OnEnable()
     {
         InitOpenBag();
+    }
+
+    protected PopManager _popSubInfo;
+
+    private void CloseSubInfo()
+    {
+        if (this._popSubInfo != null)
+        {
+            this._popSubInfo.CloseUI(null);
+            this._popSubInfo = null;
+        }
     }
 
     public void InitOpenBag()
@@ -66,9 +79,10 @@ public class Bag : MonoBehaviour
                     equipID = tempIndex;
                     itemButtons.transform.GetChild(equipID).GetComponent<Image>().color = new Color(0.8f, 1, 0.7f);
                 }
+                Item tempItem = items[i];
                 item.GetComponent<Button>().onClick.AddListener(() =>
                 {
-                    InitItemButton(item.gameObject, tempIndex);
+                    InitItemButton(item.gameObject, tempIndex, tempItem);
                 });
             }
             else
@@ -80,46 +94,28 @@ public class Bag : MonoBehaviour
         }
     }
 
-    private void InitItemButton(GameObject b, long tempValue)
+    private void InitItemButton(GameObject b, long tempValue, Item item)
     {
-        itemSelect.gameObject.SetActive(true);
-        itemSelect.GetComponent<ItemSelect>().Init(character.getRole().items[tempValue]);
-        itemSelect.transform.position = b.transform.position;// + new Vector3(100, 0, 0);
-        Item toEquip = character.getRole().items[tempValue];
-        //这里判断是否装备还是使用
-        if (toEquip.info.Kind != (int)ItemKind.Tool)
-            itemSelect.Find("Button/EquipBtn").GetComponent<Button>().onClick.AddListener(() => { ChangeEquip((int)tempValue); });
-        else itemSelect.Find("Button/UseBtn").GetComponent<Button>().onClick.AddListener(() => { UseItem((int)tempValue); });
+        if (this._popSubInfo != null)
+        {
+            this.CloseSubInfo();
+            //return;
+        }
+        //UIButtonTools.onButtonClick();
+        this.ItemApply(b, tempValue, true, item);
     }
 
-    private void ChangeEquip(int selectID)
+    private void ItemApply(GameObject go, long tempValue, bool isBag, Item item)
     {
-        Item toEquip = character.getRole().items[selectID];
+        this._popSubInfo = MenuHelper.PopItemInfo(go.transform.position, item, character.getRole(), tempValue, equipID, this.transform.GetChild(0));
+        _popSubInfo.UpdateAction += ChangeEquipAction;
+        _popSubInfo.UpdateAction += InitBag;
+    }
 
-        character.getRole().equip = character.getRole().items[selectID];
+    //TODO:这里只解决了切换武器，没解决显示问题，应该实时解决
+    private void ChangeEquipAction()
+    {
         character.InitBecauseEquip();
-
-        itemButtons.transform.GetChild(equipID).GetComponent<Image>().color = Color.white;
-        itemButtons.transform.GetChild(selectID ).GetComponent<Image>().color = new Color(0.8f, 1, 0.7f);
-        equipID = selectID;
-        character.getRole().equip = toEquip;
-    }
-
-    private void UseItem(int selectID)
-    {
-        Item toEquip = character.getRole().items[selectID];
-        Debug.Log(toEquip.skills.Count);
-        for (int i = 0; i < toEquip.skills.Count; i++)
-        {
-            Skill skill = toEquip.skills[i];
-            character.UseItem(skill);
-        }
-        toEquip.count--;
-        if (toEquip.count <= 0)
-        {
-            character.getRole().items[selectID] = null;
-        }
-        InitBag();
     }
 
     public void CloseBag()

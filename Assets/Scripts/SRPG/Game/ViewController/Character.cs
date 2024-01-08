@@ -67,6 +67,21 @@ public class Character : MonoBehaviour
             min_AttackRange = 1;
             max_AttackRange = 1;
         }
+
+        //这个是火纹engage的模式，取最大值，感觉更好点
+        //int tempMin = 1;
+        //int tempMax = 1;
+
+        //foreach (var item in role.items)
+        //{
+        //    if (item == null) continue;
+        //    if (tempMax < item.info.RangeO)
+        //        tempMax = item.info.RangeO;
+        //    if (tempMin > item.info.RangeI)
+        //        tempMin = item.info.RangeI;
+        //}
+        //min_AttackRange = tempMin;
+        //max_AttackRange = tempMax;
     }
 
     public int GetMaxAttackAndSkillRange()
@@ -234,21 +249,4 @@ public class Character : MonoBehaviour
         return model.getRole();
     }
 
-}
-
-/// <summary>
-/// 专门用在地图编辑保存单位数据
-/// </summary>
-public class UnitInfo
-{
-    public string pid;
-    public int tileIndex;
-    public bool isPlayer;
-
-    public UnitInfo(string pid, int tileIndex, bool isPlayer)
-    {
-        this.pid = pid;
-        this.tileIndex = tileIndex;
-        this.isPlayer = isPlayer;
-    }
 }

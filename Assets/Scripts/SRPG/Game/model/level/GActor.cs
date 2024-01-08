@@ -112,7 +112,7 @@ namespace France.Game.model.level
             throw new System.Exception();
         }
 
-        public int getId()
+        public int GetUid()
         {
             return this.uid;
         }

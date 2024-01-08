@@ -19,7 +19,7 @@ public class GFightUnit : GActor
     {
         base.createObj();
         //角色不存在，直接返回
-        if (this.getCharacterId() == null)
+        if (this.GetPid() == null)
         {
             //base.disableActorFlag(DataType.ACTOR_FLAG.ACTIVE);
             return;
@@ -28,19 +28,29 @@ public class GFightUnit : GActor
         GameObject gameObject = this.actorObject.FindObject("Unit_HpBar");
         GameObject hpFriend = this.actorObject.FindObject("hpFriend");
         GameObject hpEnemy = this.actorObject.FindObject("hpEnemy");
+        GameObject hpObe = this.actorObject.FindObject("hpObe");
 
         // 根据队伍ID设置血条对象
         if (teamId == 0)
         {
             hpEnemy.SetActive(false);
             hpFriend.SetActive(true);
+            hpObe.SetActive(false);
             this.hpObject = hpFriend;
         }
-        else
+        else if (teamId == 1)
         {
             hpEnemy.SetActive(true);
             hpFriend.SetActive(false);
+            hpObe.SetActive(false);
             this.hpObject = hpEnemy;
+        }
+        else
+        {
+            hpEnemy.SetActive(false);
+            hpFriend.SetActive(false);
+            hpObe.SetActive(true);
+            this.hpObject = hpObe;
         }
         //// 查找并设置 MP 对象数组
         //for (int j = 0; j < this.mpObjects.Length; j++)
@@ -78,10 +88,10 @@ public class GFightUnit : GActor
 
     public Role getRole()
     {
-        return PlayerData.GetRole(this.getCharacterId(), this.getId());
+        return PlayerData.GetRole(this.GetPid(), this.GetUid());
     }
 
-    public string getCharacterId()
+    public string GetPid()
     {
         return this.pid;
     }

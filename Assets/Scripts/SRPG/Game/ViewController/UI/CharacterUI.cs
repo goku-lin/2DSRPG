@@ -2,6 +2,7 @@ using Game.Client;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,47 +11,67 @@ using UnityEngine.UI;
 /// </summary>
 public class CharacterUI : MonoBehaviour
 {
-    private GameObject characterFace;
-    private GameObject skillUI;
-    private GameObject itemButton;
+    private GameObject characterFacePrefab;
+    private GameObject skillUIPrefab;
+    private GameObject itemButtonPrefab;
     private Role nowRole;
     int equipID = -1;
     private ItemKind[] canEquip = { ItemKind.Sword, ItemKind.Lance, ItemKind.Axe, ItemKind.Bow, ItemKind.Dagger, ItemKind.Magic, ItemKind.Fist, ItemKind.Special };
     protected PopManager _popSubInfo;
     private Dictionary<string, GameObject> learnedSkillDic = new Dictionary<string, GameObject>();
 
-    private void Start()
+    private Transform faceParent;
+    private Transform attributeParent;
+    private Transform mainInfoParent;
+    private Transform skillParent;
+    private Transform itemParent;
+
+    private void LoadPrefabs()
     {
-        characterFace = ResourcesExt.Load<GameObject>("Prefabs/CharacterFace");
-        skillUI = ResourcesExt.Load<GameObject>("Prefabs/skillUI");
-        itemButton = ResourcesExt.Load<GameObject>("Prefabs/ItemButton");
-        InitCharacter();
+        characterFacePrefab = Resources.Load<GameObject>("Prefabs/CharacterFace");
+        skillUIPrefab = Resources.Load<GameObject>("Prefabs/skillUI");
+        itemButtonPrefab = Resources.Load<GameObject>("Prefabs/ItemButton");
     }
 
-
-    private void InitCharacter()
+    private void InitUIElements()
     {
-        Transform face = this.transform.Find("Face");
+        faceParent = this.transform.Find("Face");
+        attributeParent = transform.Find("Attribute");
+        mainInfoParent = this.transform.Find("MainInfo");
+        skillParent = this.transform.Find("Skill");
+        itemParent = this.transform.Find("Item");
+    }
 
-        foreach (var item in PlayerData.Army.Values)
+    private void Start()
+    {
+        LoadPrefabs();
+        InitUIElements();
+        InitCharacterFaces();
+    }
+
+    private Sprite LoadSprite(string path)
+    {
+        return Resources.Load<Sprite>(path);
+    }
+
+    private void InitCharacterFaces()
+    {
+        foreach (var role in PlayerData.Army.Values)
         {
-            GameObject f = Instantiate(characterFace, face);
-            f.GetComponent<Button>().onClick.AddListener(() => { CharacterButton(item); });
-            f.transform.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Face/" + item.unitName);
+            GameObject face = Instantiate(characterFacePrefab, faceParent);
+            face.GetComponent<Button>().onClick.AddListener(() => CharacterButton(role));
+            face.GetComponent<Image>().sprite = LoadSprite("Face/" + role.unitName);
         }
-        CharacterButton(PlayerData.Army.First().Value);
+        if (PlayerData.Army.Any())
+            CharacterButton(PlayerData.Army.First().Value);
     }
 
     //点击后更新所有角色信息UI
-    private void CharacterButton(Role r)
+    private void CharacterButton(Role role)
     {
-        if (nowRole != r)
+        if (nowRole != role)
         {
-            nowRole = r;
-
-            CharacterPicture picture = this.transform.Find("Picture").GetComponent<CharacterPicture>();
-            picture.Init(nowRole);
-
+            nowRole = role;
             UpdateCharacterInfo();
         }
         CloseAll();
@@ -58,73 +79,76 @@ public class CharacterUI : MonoBehaviour
 
     private void UpdateCharacterInfo()
     {
-        Transform attribute = transform.Find("Attribute");
+        UpdateCharacterPicture();
+        UpdateBaseInfo();
+        UpdateSkills();
+        UpdateItems();
+    }
 
-        Image unitPicture = this.transform.Find("Picture").GetComponent<Image>();
-        unitPicture.sprite = ResourcesExt.Load<Sprite>("Picture/" + nowRole.unitName);
-        if (unitPicture.sprite == null)
-        {
-            unitPicture.sprite = ResourcesExt.Load<Sprite>("Picture/temp");
-        }
+    private void UpdateCharacterPicture()
+    {
+        Image unitPicture = transform.Find("Picture").GetComponent<Image>();
+        unitPicture.sprite = LoadSprite("Picture/" + nowRole.unitName) ?? LoadSprite("Picture/temp");
         unitPicture.SetNativeSize();
+
         Item expItem = FindExpItem();
 
-        UpdateBaseInfo(attribute);
-        Transform mainInfo = this.transform.Find("MainInfo");
-        mainInfo.Find("Name").GetComponent<Text>().text = nowRole.unitName;
-        mainInfo.Find("Lv").GetComponent<Text>().text = "Lv：" + nowRole.lv;
+        mainInfoParent.Find("Name").GetComponent<Text>().text = nowRole.unitName;
+        mainInfoParent.Find("Lv").GetComponent<Text>().text = "Lv：" + nowRole.lv;
         //TODO:暂时先这样，以实现功能为主
-        mainInfo.Find("LvUp").GetComponent<Button>().onClick.AddListener(() =>
+        mainInfoParent.Find("LvUp").GetComponent<Button>().onClick.AddListener(() =>
         {
             UseExpItem(expItem);
-            UpdateBaseInfo(attribute);
-            mainInfo.Find("Lv").GetComponent<Text>().text = "Lv：" + nowRole.lv;
+            UpdateBaseInfo();
+            mainInfoParent.Find("Lv").GetComponent<Text>().text = "Lv：" + nowRole.lv;
         });
+    }
 
-        Transform skill = this.transform.Find("Skill");
-        Transform currentSkill = skill.Find("CurrentSkill");
-        //已装备技能显示
+    private void UpdateBaseInfo()
+    {
+        attributeParent.Find("HP").GetComponent<Text>().text = "血量：" + nowRole.maxHp;
+        attributeParent.Find("Str").GetComponent<Text>().text = "力量：" + nowRole.str;
+        attributeParent.Find("Magic").GetComponent<Text>().text = "魔力：" + nowRole.magic;
+        attributeParent.Find("Def").GetComponent<Text>().text = "防御：" + nowRole.def;
+        attributeParent.Find("Mdef").GetComponent<Text>().text = "魔防：" + nowRole.mdef;
+        attributeParent.Find("Tech").GetComponent<Text>().text = "技巧：" + nowRole.tech;
+        attributeParent.Find("Quick").GetComponent<Text>().text = "速度：" + nowRole.quick;
+
+        attributeParent.Find("Attack").GetComponent<Text>().text = "攻击：" + nowRole.calcAtt();
+    }
+
+    private void UpdateSkills()
+    {
+        // 假设nowRole.equipedSkills是一个包含当前角色已装备技能的列表
+        Transform currentSkill = skillParent.Find("CurrentSkill");
+        //已装备技能显示,这里设定固定数量，nowRole.equipedSkills.Count是全部
         for (int i = 0; i < PlayerData.skillNumber; i++)
         {
             if (i >= currentSkill.childCount)
-                Instantiate(skillUI, currentSkill);
+                Instantiate(skillUIPrefab, currentSkill);
+
             if (i >= nowRole.equipedSkills.Count)
             {
                 //空位隐藏掉
                 currentSkill.GetChild(i).gameObject.SetActive(false);
                 continue;
             }
-            currentSkill.GetChild(i).gameObject.SetActive(true);
-            GameObject s = currentSkill.GetChild(i).gameObject;
-            s.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + nowRole.equipedSkills[i].Info.IconLabel);
+            GameObject skillGO = currentSkill.GetChild(i).gameObject;
+            skillGO.SetActive(true);
+            skillGO.GetComponent<Image>().sprite = Resources.Load<Sprite>("Textures/skill/" + nowRole.equipedSkills[i].Info.IconLabel);
+            // 这里可以添加按钮点击事件
         }
+        skillParent.Find("SkillInfo").GetComponent<Button>().onClick.AddListener(SkillButton);
+    }
 
-        skill.Find("SkillInfo").GetComponent<Button>().onClick.AddListener(SkillButton);
-
-
-        Transform item = this.transform.Find("Item");
-        Transform equip = item.Find("Equip");
-
-        Transform info3 = this.transform.Find("Item/Info3");
-
+    private void UpdateItems()
+    {
+        Transform equip = itemParent.Find("Equip");
         if (nowRole.equip != null)
             equip.GetChild(0).GetComponent<Text>().text = nowRole.equip.info.Name;
         else
             equip.GetChild(0).GetComponent<Text>().text = "无";
-        item.Find("ItemInfo").GetComponent<Button>().onClick.AddListener(ItemButton);
-    }
-
-    private void UpdateBaseInfo(Transform info)
-    {
-        info.Find("HP").GetComponent<Text>().text = "血量：" + nowRole.maxHp;
-        info.Find("Str").GetComponent<Text>().text = "力量：" + nowRole.str;
-        info.Find("Magic").GetComponent<Text>().text = "魔力：" + nowRole.magic;
-        info.Find("Def").GetComponent<Text>().text = "防御：" + nowRole.def;
-        info.Find("Mdef").GetComponent<Text>().text = "魔防：" + nowRole.mdef;
-        info.Find("Tech").GetComponent<Text>().text = "技巧：" + nowRole.tech;
-        info.Find("Quick").GetComponent<Text>().text = "速度：" + nowRole.quick;
-
-        info.Find("Attack").GetComponent<Text>().text = "攻击：" + nowRole.calcAtt();
+        itemParent.Find("ItemInfo").GetComponent<Button>().onClick.AddListener(ItemButton);
     }
 
     private Item FindExpItem()
@@ -163,7 +187,7 @@ public class CharacterUI : MonoBehaviour
         for (int i = 0; i < PlayerData.skillNumber; i++)
         {
             if (i >= currentSkill.childCount)
-                Instantiate(skillUI, currentSkill);
+                Instantiate(skillUIPrefab, currentSkill);
             GameObject skillGO = currentSkill.GetChild(i).gameObject;
             if (i >= nowRole.equipedSkills.Count)
             {
@@ -185,7 +209,7 @@ public class CharacterUI : MonoBehaviour
         foreach (var skill in nowRole.learnedSkills.Values)
         {
             //这个是去掉重复的
-            if (j >= skills.childCount) Instantiate(skillUI, skills);
+            if (j >= skills.childCount) Instantiate(skillUIPrefab, skills);
             skills.GetChild(j).gameObject.SetActive(true);
             GameObject s = skills.GetChild(j).gameObject;
             s.GetComponent<Image>().sprite = ResourcesExt.Load<Sprite>("Textures/skill/" + skill.Info.IconLabel);
@@ -250,7 +274,7 @@ public class CharacterUI : MonoBehaviour
         for (int i = 0; i < 6; i++)
         {
             if (i >= bag.childCount)
-                Instantiate(itemButton, bag);
+                Instantiate(itemButtonPrefab, bag);
             if (nowRole.items[i] == null)
             {
                 //空位隐藏掉
@@ -279,7 +303,7 @@ public class CharacterUI : MonoBehaviour
         //仓库显示
         foreach (var i in PlayerData.Warehouse.Values)
         {
-            if (j >= warehouse.childCount) Instantiate(itemButton, warehouse);
+            if (j >= warehouse.childCount) Instantiate(itemButtonPrefab, warehouse);
             warehouse.GetChild(j).gameObject.SetActive(true);
 
             GameObject s = warehouse.GetChild(j).gameObject;
@@ -313,7 +337,7 @@ public class CharacterUI : MonoBehaviour
 
     private void ItemApply(GameObject go, long tempValue, bool isBag, Item item)
     {
-        Item[] items = this.nowRole.items;
+        //Item[] items = this.nowRole.items;
         this._popSubInfo = MenuHelper.PopItemInfo(go.transform.position, item, nowRole, tempValue, equipID, this.transform.Find("Info/Item/Bag"));
         _popSubInfo.UpdateAction += UpdateCharacterInfo;
         _popSubInfo.UpdateAction += ItemButton;
